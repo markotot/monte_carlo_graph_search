@@ -1,0 +1,34 @@
+env:
+  seed: 121
+  size: 16
+  level_name: "labyrinth16" # Can be ["default", "test16", "labyrinth16"]
+  action_failure_probability: 0.0
+
+search:
+  seed: 1
+  max_moves: 100
+  num_rollouts: 1
+  rollout_depth: 50
+  budget_per_move: 8000
+  discount_factor: 0.999
+
+selection:
+  use_noisy_frontier_selection: True
+  noisy_min_value: 0.0001
+  amplitude_factor: 0.2
+
+novelty:
+  use_novelty_detection: True
+  novelty_factor: 0.01
+  novelty_threshold: 0.25
+  inherit_novelty_factor: 0.0
+  use_novelty_for_best_step: True
+
+stored_rollouts:
+  use_stored_rollouts: True
+  only_store_novel_nodes: False
+
+use_backpropagation: True
+use_disabled_actions: False
+
+neptune_project: "markotot/MCGS"
