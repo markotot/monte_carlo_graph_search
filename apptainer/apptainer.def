@@ -3,7 +3,7 @@ From: python:3.8
 %setup
 
 %files
-    ../monte_carlo_graph_search monte_carlo_graph_search
+    monte_carlo_graph_search monte_carlo_graph_search
 
 %post
     apt-get -y update
