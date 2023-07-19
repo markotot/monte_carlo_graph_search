@@ -1,4 +1,3 @@
-import cv2
 import numpy as np
 from minigrid.core.grid import Grid
 from minigrid.core.world_object import Ball, Box, Door, Floor, Goal, Key, Lava, Wall
@@ -125,10 +124,6 @@ class CustomMinigridEnv(DoorKeyEnv):
 
     def render(self):
         return super().render()
-
-    def image_observation(self, size):
-        image = self.render()
-        return cv2.resize(image, dsize=(size, size), interpolation=cv2.INTER_CUBIC)
 
     def get_agent_position(self):
         agent_pos_x = self.agent_pos[0]
