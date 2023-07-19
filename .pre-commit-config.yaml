@@ -32,7 +32,9 @@ repos:
       - id: flake8
         args:
           - --max-line-length=120
-          - --ignore=E731, E203, CCR001
+          - --ignore=E731, E203, CCR001 # E731: do not assign a lambda expression, use a def
+                                        # E203: whitespace before ':'
+                                        # CCR001: Cognitive Complexity is too high
         additional_dependencies:
           - pep8-naming
           - flake8-builtins
