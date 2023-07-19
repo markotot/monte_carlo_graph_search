@@ -11,8 +11,4 @@ From: python:3.8
     pip install -r monte_carlo_graph_search/requirements.txt
 
 %runscript
-    ls
-    cd monte_carlo_graph_search
-    ls
-    cd ..
-    bash scripts/launch_exp.sh
+    bash monte_carlo_graph_search/scripts/launch_exp.sh
