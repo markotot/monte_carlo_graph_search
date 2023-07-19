@@ -1,8 +1,7 @@
 class Node:
+    def __init__(self, id, parent, is_leaf, action, reward, done, visits, novelty_value, config):
 
-    def __init__(self, ID, parent, is_leaf, action, reward, done, visits, novelty_value, config):
-
-        self.id = ID
+        self.id = id
         self.parent = parent
         self.is_leaf = is_leaf
         self.action = action
@@ -18,7 +17,7 @@ class Node:
         self.unreachable = False
 
     def uct_value(self):
-        c = 0.0
+        # c = 0.0
         ucb = 0  # c * sqrt(log(self.parent.visits + 1) / self.visits)
         return self.value() + ucb
 

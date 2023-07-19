@@ -7,17 +7,17 @@ class EnvType(Enum):
 
 
 OBJECT_TO_TEXT = {
-    "unseen": 'U',
-    "empty": 'E',
-    "wall": 'W',
-    "floor": ' ',
-    "door": 'D',
-    "key": 'K',
-    "ball": 'B',
-    "box": 'X',
-    "goal": 'G',
-    "lava": 'L',
-    "agent": 'A',
+    "unseen": "U",
+    "empty": "E",
+    "wall": "W",
+    "floor": " ",
+    "door": "D",
+    "key": "K",
+    "ball": "B",
+    "box": "X",
+    "goal": "G",
+    "lava": "L",
+    "agent": "A",
 }
 
 OBJECT_TO_IDX = {
@@ -56,18 +56,15 @@ def agent_rotation_to_text(agent_dir):
 
 
 def agent_action_to_text(action):
-    return {0: "Turns left",
-            1: "Turns right",
-            2: "Moves forward",
-            3: "Picks up object",
-            4: "Drops object",
-            5: "Interacts",
-            6: "Done",
-            }[action]
-
-
-def generate_mission():
-    return f"Reach the goal"
+    return {
+        0: "Turns left",
+        1: "Turns right",
+        2: "Moves forward",
+        3: "Picks up object",
+        4: "Drops object",
+        5: "Interacts",
+        6: "Done",
+    }[action]
 
 
 def observation_to_text(node):
@@ -77,10 +74,10 @@ def observation_to_text(node):
     carry = node.id[3]
     door_open = node.id[4]
     door_locked = node.id[5]
-    return f"Agent position: ({agent_pos_x}, {agent_pos_y})\t" \
-           f"Agent direction: {agent_dir}\t" \
-           f"Carry: {carry}\t" \
-           f"Door open: {door_open}"\
-           f"Door locked: {door_locked}\n"
-
-
+    return (
+        f"Agent position: ({agent_pos_x}, {agent_pos_y})\t"
+        f"Agent direction: {agent_dir}\t"
+        f"Carry: {carry}\t"
+        f"Door open: {door_open}"
+        f"Door locked: {door_locked}\n"
+    )

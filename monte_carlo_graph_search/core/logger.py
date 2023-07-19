@@ -3,7 +3,6 @@ import numpy as np
 
 
 class NeptuneLogger:
-
     def __init__(self, config):
         self.config = config
 
@@ -29,4 +28,3 @@ class NeptuneLogger:
             tags += ["stored rollouts"]
 
         return tags
-

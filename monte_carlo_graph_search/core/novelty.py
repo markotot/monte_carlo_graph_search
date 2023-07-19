@@ -1,6 +1,4 @@
-
 class Novelty:
-
     def __init__(self, config):
         self.total_data_points = 0
         self.threshold = config.novelty.novelty_threshold
@@ -16,24 +14,24 @@ class Novelty:
 
         # Discovered, Nodes, Moves, FMC
         self.subgoals = {
-            'key':
-                {"discovered": False,
-                 "nodes": -1,
-                 "moves": -1,
-                 "forward_model_calls": -1
-                 },
-            'door':
-                {"discovered": False,
-                 "nodes": -1,
-                 "moves": -1,
-                 "forward_model_calls": -1
-                 },
-            'goal':
-                {"discovered": False,
-                 "nodes": -1,
-                 "moves": -1,
-                 "forward_model_calls": -1
-                 },
+            "key": {
+                "discovered": False,
+                "nodes": -1,
+                "moves": -1,
+                "forward_model_calls": -1,
+            },
+            "door": {
+                "discovered": False,
+                "nodes": -1,
+                "moves": -1,
+                "forward_model_calls": -1,
+            },
+            "goal": {
+                "discovered": False,
+                "nodes": -1,
+                "moves": -1,
+                "forward_model_calls": -1,
+            },
         }
 
     def calculate_novelty(self, observation):
@@ -109,9 +107,9 @@ class Novelty:
     def get_discovered_subgoals(self):
 
         subgoals = {
-            'key_discovered': self.subgoals['key']["discovered"],
-            'door_discovered': self.subgoals['door']["discovered"],
-            'goal_discovered': self.subgoals['goal']["discovered"],
+            "key_discovered": self.subgoals["key"]["discovered"],
+            "door_discovered": self.subgoals["door"]["discovered"],
+            "goal_discovered": self.subgoals["goal"]["discovered"],
         }
 
         return subgoals

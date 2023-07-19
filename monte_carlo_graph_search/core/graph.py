@@ -1,11 +1,9 @@
-import time
-
+import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-import matplotlib.pyplot as plt
 from networkx.drawing.nx_agraph import graphviz_layout
 
-#Colors:
+# Colors:
 # orange    -   standard
 # red       -   frontier
 # blue      -   root
@@ -15,7 +13,6 @@ from networkx.drawing.nx_agraph import graphviz_layout
 
 
 class Graph:
-
     def __init__(self, seed, config):
 
         self.graph = nx.DiGraph()
@@ -53,7 +50,7 @@ class Graph:
         return node in self.frontier
 
     def save_graph(self, path):
-        nx.readwrite.write_gpickle(self.graph, path)
+        nx.readwrite.write_gpickle(self.graph, path + ".gpickle")
 
     def load_graph(self, path):
         self.graph = nx.readwrite.read_gpickle(path)
@@ -67,7 +64,11 @@ class Graph:
 
             if noisy:
                 amplitude = self.get_best_node(only_reachable=True).uct_value() * self.config.selection.amplitude_factor
-                noise = self.random.normal(0, max(amplitude, self.config.selection.noisy_min_value), len(selectable_nodes))
+                noise = self.random.normal(
+                    0,
+                    max(amplitude, self.config.selection.noisy_min_value),
+                    len(selectable_nodes),
+                )
             else:
                 noise = 0
 
@@ -86,7 +87,7 @@ class Graph:
 
     def reroute_paths(self, root_node):
 
-        for node_id, node in self.graph.nodes.data('info'):
+        for node_id, node in self.graph.nodes.data("info"):
             if root_node.id != node_id:
                 if self.has_path(self.root_node, node):
                     self.reroute_path(self.root_node, node)
@@ -103,7 +104,12 @@ class Graph:
         observations = nx.dijkstra_path(self.graph, node_from.id, node_to.id)
         actions = []
         for i in range(len(observations) - 1):
-            actions.append(self.get_edge_info(self.get_node_info(observations[i]), self.get_node_info(observations[i + 1])).action)
+            actions.append(
+                self.get_edge_info(
+                    self.get_node_info(observations[i]),
+                    self.get_node_info(observations[i + 1]),
+                ).action
+            )
 
         return observations, actions
 
@@ -118,7 +124,7 @@ class Graph:
         return self.graph.nodes[id]["info"]
 
     def get_all_nodes_info(self):
-        return list(nx.get_node_attributes(self.graph, 'info').values())
+        return list(nx.get_node_attributes(self.graph, "info").values())
 
     def get_nodes_with_degree(self, degree):
         node_list = []
@@ -179,8 +185,8 @@ class Graph:
 
         return best_node
 
-    def has_node(self, ID):
-        return self.graph.has_node(ID)
+    def has_node(self, id):
+        return self.graph.has_node(id)
 
     def has_edge(self, edge):
         parent = edge.node_from
@@ -212,6 +218,7 @@ class Graph:
 
     def get_number_of_nodes(self):
         return len(self.graph.nodes)
+
     def get_edge_info(self, parent, child):
         return self.graph.get_edge_data(parent.id, child.id)["info"]
 
@@ -233,10 +240,9 @@ class Graph:
 
         return metrics
 
-
     def draw_graph(self):
 
-        nodes_info = nx.get_node_attributes(self.graph, 'info')
+        nodes_info = nx.get_node_attributes(self.graph, "info")
         node_color_map = []
         node_size_map = []
         value_map = {}
@@ -246,38 +252,38 @@ class Graph:
             if (node.novelty_value == 0 and node.value() == 0) or node not in self.frontier:
                 value_map[node.id] = ""
             else:
-                #value_map[node.id] = str(round(node.novelty_value + node.value(), 2))
-                value_map[node.id] =  ""
+                # value_map[node.id] = str(round(node.novelty_value + node.value(), 2))
+                value_map[node.id] = ""
             node_size_map.append(30)
 
             if node == self.root_node:
-                node_color_map.append('blue')
+                node_color_map.append("blue")
             elif node.chosen:
-                node_color_map.append('lightblue')
+                node_color_map.append("lightblue")
             elif node.unreachable:
-                node_color_map.append('grey')
+                node_color_map.append("grey")
             elif node in self.new_nodes:
-                node_color_map.append('pink')
+                node_color_map.append("pink")
             elif node.done:
-                node_color_map.append('green')
+                node_color_map.append("green")
             elif node in self.frontier:
-                node_color_map.append('red')
+                node_color_map.append("red")
             else:
-                node_color_map.append('orange')
+                node_color_map.append("orange")
 
-        edges_info = nx.get_edge_attributes(self.graph, 'info')
+        edges_info = nx.get_edge_attributes(self.graph, "info")
         edge_color_map = []
         edge_width_map = []
         for edge in edges_info.values():
             if edge.node_from == self.root_node:
                 edge_width_map.append(1)
-                edge_color_map.append('blue')
+                edge_color_map.append("blue")
             elif edge.node_to.chosen and edge.node_from.chosen:
                 edge_width_map.append(1)
-                edge_color_map.append('lightblue')
+                edge_color_map.append("lightblue")
             else:
                 edge_width_map.append(0.2)
-                edge_color_map.append('grey')
+                edge_color_map.append("grey")
 
         general_options = {
             "with_labels": False,
@@ -295,7 +301,7 @@ class Graph:
             "arrowsize": 10,
         }
 
-        pos = graphviz_layout(self.graph, prog='neato')
+        pos = graphviz_layout(self.graph, prog="neato")
 
         options = {}
         options.update(general_options)
@@ -303,14 +309,11 @@ class Graph:
         options.update(edge_options)
 
         dpi = 96
-        plt.figure(1, figsize=(1024/dpi, 768/dpi))
+        plt.figure(1, figsize=(1024 / dpi, 768 / dpi))
 
         nx.draw(self.graph, pos, **options)
         nx.draw_networkx_labels(self.graph, pos, value_map, font_size=8)
         plt.show()
-
-    def save_graph(self, path):
-        nx.readwrite.write_gpickle(self.graph, path + ".gpickle")
 
     def reroute_all(self):
 
@@ -338,7 +341,6 @@ class Graph:
                     child_node.action = self.get_edge_info(node, child_node).action
                     visited.append(child)
                     queue.append(child)
-
 
     def reroute_all_optimized(self):
         i = 0
@@ -370,6 +372,4 @@ class Graph:
                         queue.append(child)
                     visited.append(child)
                     i += 1
-        #print(i)
-
-
+        # print(i)
