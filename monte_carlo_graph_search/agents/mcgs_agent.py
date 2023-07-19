@@ -372,10 +372,8 @@ class MCGSAgent:
                 spent_budget += 1
 
                 current_observation = env.get_observation()
-                if not self.graph.has_node(
-                    current_observation
-                ):  # If we get a new observation (can happen in fully stochastic envs)
-
+                # If we get a new observation (can happen in fully stochastic envs)
+                if not self.graph.has_node(current_observation):
                     self.add_new_observation(current_observation, parent_node, action, reward, done)  # TODO:
 
                 elif not self.graph.has_edge_by_nodes(parent_node, self.graph.get_node_info(current_observation)):
