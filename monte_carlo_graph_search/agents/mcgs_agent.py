@@ -26,7 +26,6 @@ class MCGSAgent:
         self.move_counter = 0
         self.num_simulations = 0  # One simulation has  N rollouts (N = number of children)
 
-        x = 0
         observation = self.env.get_observation()
         self.root_node = Node(
             ID=observation,

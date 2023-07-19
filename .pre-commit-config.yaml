@@ -32,7 +32,7 @@ repos:
       - id: flake8
         args:
           - --max-line-length=120
-          - --ignore=E731, E203
+          - --ignore=E731, E203, CCR001
         additional_dependencies:
           - pep8-naming
           - flake8-builtins
