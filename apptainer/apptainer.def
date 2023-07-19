@@ -3,11 +3,16 @@ From: python:3.8
 %setup
 
 %files
-    monte_carlo_graph_search monte_carlo_graph_search
+    ../monte_carlo_graph_search monte_carlo_graph_search
 
 %post
     apt-get -y update
+    ls
     pip install -r monte_carlo_graph_search/requirements.txt
 
 %runscript
-    bash monte_carlo_graph_search/scripts/launch_exp.sh
+    ls
+    cd monte_carlo_graph_search
+    ls
+    cd ..
+    bash scripts/launch_exp.sh

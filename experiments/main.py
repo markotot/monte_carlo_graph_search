@@ -1,5 +1,4 @@
 import hydra
-from matplotlib import pyplot as plt
 from omegaconf import DictConfig
 
 from monte_carlo_graph_search.agents.mcgs_agent import MCGSAgent
@@ -7,7 +6,6 @@ from monte_carlo_graph_search.core.logger import NeptuneLogger
 from monte_carlo_graph_search.environment.minigrid.custom_minigrid_env import (
     CustomMinigridEnv,
 )
-from monte_carlo_graph_search.utils.plotting import plot_images
 
 # TODO: check why the time percentages don't add up to 100% ?? Check if this is correct
 
@@ -22,8 +20,8 @@ def run_app(config: DictConfig) -> None:
     images = []
 
     image = env.render()
-    plt.imshow(image)
-    plt.show()
+    # plt.imshow(image)
+    # plt.show()
 
     total_reward = 0
     for _ in range(config.search.max_moves):
@@ -40,11 +38,11 @@ def run_app(config: DictConfig) -> None:
     metrics = agent.get_final_metrics(done)
     logger.write(metrics, agent.move_counter)
 
-    plot_images(
-        f"env seed: {config.env.seed}   agent seed: {config.search.seed}",
-        images,
-        total_reward,
-    )
+    # plot_images(
+    #     f"env seed: {config.env.seed}   agent seed: {config.search.seed}",
+    #     images,
+    #     total_reward,
+    # )
 
     logger.close()
 

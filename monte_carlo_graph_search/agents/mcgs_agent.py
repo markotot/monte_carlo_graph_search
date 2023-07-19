@@ -28,7 +28,7 @@ class MCGSAgent:
 
         observation = self.env.get_observation()
         self.root_node = Node(
-            ID=observation,
+            id=observation,
             parent=None,
             is_leaf=True,
             done=False,
@@ -280,7 +280,7 @@ class MCGSAgent:
             ):  # If the node is not in the graph, create it and add it to the graph
 
                 child = Node(
-                    ID=current_observation,
+                    id=current_observation,
                     parent=parent_node,
                     is_leaf=True,
                     done=done,
@@ -398,7 +398,7 @@ class MCGSAgent:
     def add_edge(self, parent_node, child_node, action, reward, done):
 
         edge = Edge(
-            ID=self.edge_counter,
+            id=self.edge_counter,
             node_from=parent_node,
             node_to=child_node,
             action=action,
