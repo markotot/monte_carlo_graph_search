@@ -7,8 +7,6 @@ from monte_carlo_graph_search.environment.minigrid.custom_minigrid_env import (
     CustomMinigridEnv,
 )
 
-# TODO: check why the time percentages don't add up to 100% ?? Check if this is correct
-
 
 @hydra.main(version_base=None, config_path="configs", config_name="mcgs")
 def run_app(config: DictConfig) -> None:
@@ -19,7 +17,7 @@ def run_app(config: DictConfig) -> None:
 
     images = []
 
-    image = env.render()
+    # image = env.render()
     # plt.imshow(image)
     # plt.show()
 
