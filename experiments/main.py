@@ -1,3 +1,5 @@
+import sys
+
 import hydra
 from omegaconf import DictConfig
 
@@ -11,6 +13,7 @@ from monte_carlo_graph_search.environment.minigrid.custom_minigrid_env import (
 @hydra.main(version_base=None, config_path="configs", config_name="mcgs")
 def run_app(config: DictConfig) -> None:
 
+    print(sys.argv)
     logger = NeptuneLogger(config=config)
     env = CustomMinigridEnv(env_config=config.env)
     agent = MCGSAgent(env=env, logger=logger, config=config)
