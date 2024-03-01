@@ -9,7 +9,5 @@
 
 module load python/3.8.5
 
-
 # Replace the following line with a program or command
-echo "SGE_TASK_ID: $SGE_TASK_ID"
-apptainer run --env-file myenvs --env "SEED=$SGE_TASK_ID" playground.sif
+apptainer run --env-file myenvs --env "SEED=$SGE_TASK_ID" mcgs.sif

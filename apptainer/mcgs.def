@@ -12,4 +12,4 @@ From: python:3.8
 
 %runscript
     cd monte_carlo_graph_search
-    bash scripts/launch_exp.sh
+    bash scripts/launch_exp.sh $SEED
