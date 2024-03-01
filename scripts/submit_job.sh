@@ -10,4 +10,4 @@
 module load python/3.8.5
 
 # Replace the following line with a program or command
-apptainer run --env-file myenvs mcgs.sif "MYVAR=1"
+apptainer run --env-file myenvs mcgs.sif
