@@ -2,15 +2,14 @@ Bootstrap: docker
 From: python:3.8
 
 %setup
-    echo "Hello, SETUP World! THE SEED IS "
-    echo $SEED
-    echo "THE END"
+
 %files
 
 %post
 
 
 %runscript
-    echo "Hello, World! THE SEED IS "
+    echo "PLAYGROUND.DEF"
     echo $SEED
-    echo "THE END"
+    echo "PLAYGROUND.DEF"
+    bash scripts/launch_playground.sh $SEED
