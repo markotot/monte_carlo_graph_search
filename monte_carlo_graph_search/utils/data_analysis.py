@@ -63,14 +63,33 @@ def load_run(project_id, run_id):
 
 if __name__ == "__main__":
 
-    run_ids = [126, 132, 133]
+    run_ids = [131, 132, 133]
     aggregate_metrics = {}
+
+    # Load all runs
     for run_id in run_ids:
         run_metrics = load_run("markotot/MCGS", f"MCGS-{run_id}")
+
         for metric in run_metrics:
+            if run_id == 131:
+                if len(run_metrics[metric]) > 1:
+                    run_metrics[metric] = run_metrics[metric].drop([len(run_metrics[metric]) - 1])
+
             if metric not in aggregate_metrics:
                 aggregate_metrics[metric] = run_metrics[metric]
             else:
+                # If the run has more steps than the aggregate, add the missing steps
+                agg_len = len(aggregate_metrics[metric])
+                step_difference = len(run_metrics[metric]) - agg_len
+                if step_difference > 0:
+                    for x in range(1, step_difference + 1):
+                        # new row will have the step of the last row + 1, and the rest of the columns will be 0
+                        new_row = [agg_len + x] + [0] * (len(aggregate_metrics[metric].columns) - 1)
+                        aggregate_metrics[metric].loc[x + agg_len - 1] = new_row
+
                 aggregate_metrics[metric] += run_metrics[metric]
+
+    for metric in aggregate_metrics:
+        aggregate_metrics[metric] /= len(run_ids)
 
     print(aggregate_metrics["moves"])
