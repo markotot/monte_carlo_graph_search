@@ -1,8 +1,8 @@
 Bootstrap: docker
-From: debian:7
+From: python:3.8
 
 %setup
-
+    echo $SEED
 %files
 
 %post
