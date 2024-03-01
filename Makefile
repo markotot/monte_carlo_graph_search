@@ -21,3 +21,9 @@ apocrita_build_and_run:
 	sudo expect ./scripts/apocrita_build_and_run.sh \
  	${APOCRITA_USER} ${APOCRITA_PASSPHRASE} ${APOCRITA_USER_PASSWORD} ${AP_PRIVATE_KEY_PATH} \
  	${GIT_BRANCH} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN}
+
+.PHONY: apocrita_pg_build_and_run
+apocrita_build_and_run:
+	sudo expect ./scripts/apocrita_build_and_run_playground.sh \
+ 	${APOCRITA_USER} ${APOCRITA_PASSPHRASE} ${APOCRITA_USER_PASSWORD} ${AP_PRIVATE_KEY_PATH} \
+ 	${GIT_BRANCH} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN}
