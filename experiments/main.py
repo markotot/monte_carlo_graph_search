@@ -1,5 +1,3 @@
-import sys
-
 import hydra
 from omegaconf import DictConfig
 
@@ -12,12 +10,6 @@ from omegaconf import DictConfig
 
 @hydra.main(version_base=None, config_path="configs", config_name="mcgs")
 def run_app(config: DictConfig) -> None:
-
-    print(sys.argv)
-    # Overwrite seeds if using command line arguments
-    if len(sys.argv) > 1:
-        config["env"]["seed"] = int(sys.argv[1])
-        config["search"]["seed"] = int(sys.argv[1])
 
     print(config)
     # logger = NeptuneLogger(config=config)
