@@ -11,9 +11,6 @@ From: python:3.8
     ls
     pip install -r monte_carlo_graph_search/requirements.txt
 
-
 %runscript
-    echo "PLAYGROUND.DEF"
-    echo $SEED
-    echo "PLAYGROUND.DEF"
+    cd monte_carlo_graph_search
     bash scripts/launch_playground.sh $SEED
