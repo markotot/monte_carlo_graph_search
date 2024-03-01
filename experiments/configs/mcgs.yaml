@@ -1,7 +1,7 @@
 env:
   seed: 121
   size: 16
-  level_name: "labyrinth16" # Can be ["default", "test16", "labyrinth16"]
+  level_name: "test16" # Can be ["default", "test16", "labyrinth16"]
   action_failure_probability: 0.0
 
 search:
