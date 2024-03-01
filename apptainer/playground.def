@@ -2,7 +2,9 @@ Bootstrap: docker
 From: python:3.8
 
 %setup
+     echo "Hello, SETUP World! THE SEED IS "
     echo $SEED
+    echo "THE END"
 %files
 
 %post
