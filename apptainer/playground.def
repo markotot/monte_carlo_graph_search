@@ -1,15 +1,14 @@
 Bootstrap: docker
-From: python:3.8
+From: debian:7
+
 %setup
 
 %files
-    monte_carlo_graph_search monte_carlo_graph_search
 
 %post
-    apt-get -y update
-    ls
-    pip install -r monte_carlo_graph_search/requirements.txt
+
 
 %runscript
-    cd monte_carlo_graph_search
-    bash scripts/launch_playground.sh $SEED
+    echo "Hello, World! THE SEED IS "
+    echo $SEED
+    echo "THE END"
