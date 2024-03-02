@@ -55,11 +55,13 @@ def load_run(project_id, run_id):
     run = neptune.init_run(project=project_id, with_id=run_id, mode="read-only")
 
     metrics = {}
+    env_seed = run["config/env/seed"].fetch()
+    agent_seed = run["config/search/seed"].fetch()
     for metric in analysed_metrics:
         metrics[metric] = run[metric].fetch_values(include_timestamp=False)
 
     run.stop()
-    return metrics
+    return env_seed, agent_seed, metrics
 
 
 def aggregate_metrics(run_ids):
@@ -68,21 +70,22 @@ def aggregate_metrics(run_ids):
     all_metrics = {}
     # Load all runs
     for run_id in run_ids:
-        all_metrics[run_id] = load_run("markotot/MCGS", f"{run_id}")
 
+        env_seed, agent_seed, metrics = load_run("markotot/MCGS", f"{run_id}")
+        all_metrics[f"MCGS-{env_seed}-{agent_seed}"] = metrics
     # Find the max steps for each metric
     for metric in analysed_metrics:
         max_steps = 0
-        for run_id in run_ids:
+        for run_id in all_metrics.keys():
             max_steps = max(max_steps, len(all_metrics[run_id][metric]))
         aggregate_metrics[metric] = pd.DataFrame(range(1, max_steps + 1), columns=["step"])
 
     # Add the values for each run to the aggregate metrics
     for metric in analysed_metrics:
-        for run_id in run_ids:
-            value_data_frame = all_metrics[run_id][metric].rename(columns={"value": run_id})
+        for run in all_metrics.keys():
+            value_data_frame = all_metrics[run][metric].rename(columns={"value": run})
             aggregate_metrics[metric] = pd.concat(
-                [aggregate_metrics[metric], value_data_frame[run_id]], join="outer", axis=1
+                [aggregate_metrics[metric], value_data_frame[run]], join="outer", axis=1
             )
 
     # Calculate the mean, std, max, and min for each metric
