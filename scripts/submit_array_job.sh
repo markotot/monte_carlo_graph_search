@@ -5,6 +5,7 @@
 #$ -cwd
 #$ -j y
 #$ -N Example
+#$ -o job_results
 
 module load python/3.8.5
 
