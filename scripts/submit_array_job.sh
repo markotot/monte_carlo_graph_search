@@ -4,7 +4,7 @@
 #$ -l h_rt=5:0:0
 #$ -cwd
 #$ -j y
-#$ -N Example
+#$ -N MCGS
 #$ -o job_results
 
 module load python/3.8.5
