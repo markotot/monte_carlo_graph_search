@@ -39,3 +39,6 @@ class NeptuneLogger:
             tags += ["stored rollouts"]
 
         return tags
+
+    def get_id(self):
+        return self.run["sys/id"].fetch()
