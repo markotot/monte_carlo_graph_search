@@ -1,0 +1,8 @@
+start_run_id: 131 #inclusive
+end_run_id: 133 #inclusive
+output_path: "Results/aggregate_data.csv"
+neptune_project: "markotot/MCGS"
+novelty:
+  use_novelty_detection: False
+stored_rollouts:
+  use_stored_rollouts: False
