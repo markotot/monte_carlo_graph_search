@@ -35,7 +35,7 @@ apocrita_aggregate:
  	${GIT_BRANCH} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN} ${START_SEED} ${END_SEED}
 
  .SILENT: apocrita_build_and_run_and_aggregate
-apocrita_aggregate:
+apocrita_build_and_run_and_aggregate:
 	sudo expect ./scripts/apocrita_build_and_run_and_aggregate.sh \
  	${APOCRITA_USER} ${APOCRITA_PASSPHRASE} ${APOCRITA_USER_PASSWORD} ${AP_PRIVATE_KEY_PATH} \
  	${GIT_BRANCH} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN} ${START_SEED} ${END_SEED}
