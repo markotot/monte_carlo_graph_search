@@ -5,8 +5,8 @@ PROJECT_NAME = monte_carlo_graph_search
 AP_PRIVATE_KEY_PATH = ~/Apocrita/apocrita.ssh
 APOCRITA_USER = acw549
 
-START_SEED = 10
-END_SEED = 15
+START_SEED = 1
+END_SEED = 5
 
 # Used to login to apocrita server
 .SILENT: apocrita_login
