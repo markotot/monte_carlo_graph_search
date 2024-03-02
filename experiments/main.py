@@ -12,6 +12,8 @@ from monte_carlo_graph_search.environment.minigrid.custom_minigrid_env import (
 def run_app(config: DictConfig) -> None:
 
     logger = NeptuneLogger(config=config, name="MCGS")
+    logger.add_to_experiment_file("../running_experiments.txt")
+
     env = CustomMinigridEnv(env_config=config.env)
     agent = MCGSAgent(env=env, logger=logger, config=config)
 
