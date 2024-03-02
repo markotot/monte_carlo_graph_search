@@ -57,11 +57,13 @@ def load_run(project_id, run_id):
     metrics = {}
     env_seed = run["config/env/seed"].fetch()
     agent_seed = run["config/search/seed"].fetch()
+    config = run["config"].fetch()
     for metric in analysed_metrics:
         metrics[metric] = run[metric].fetch_values(include_timestamp=False)
 
     run.stop()
-    return env_seed, agent_seed, metrics
+
+    return env_seed, agent_seed, metrics, config
 
 
 def aggregate_metrics(run_ids):
@@ -70,9 +72,12 @@ def aggregate_metrics(run_ids):
     all_metrics = {}
     # Load all runs
     for run_id in run_ids:
-
-        env_seed, agent_seed, metrics = load_run("markotot/MCGS", f"{run_id}")
+        env_seed, agent_seed, metrics, config = load_run("markotot/MCGS", f"{run_id}")
         all_metrics[f"MCGS-{env_seed}-{agent_seed}"] = metrics
+
+    del config["env"]["seed"]
+    del config["search"]["seed"]
+
     # Find the max steps for each metric
     for metric in analysed_metrics:
         max_steps = 0
@@ -95,10 +100,4 @@ def aggregate_metrics(run_ids):
         aggregate_metrics[metric]["max"] = aggregate_metrics[metric].iloc[:, 1:].max(numeric_only=True, axis=1)
         aggregate_metrics[metric]["min"] = aggregate_metrics[metric].iloc[:, 1:].min(numeric_only=True, axis=1)
 
-    return aggregate_metrics
-
-
-if __name__ == "__main__":
-    run_ids = ["131", "132", "133", "138", "139"]
-    metrics = aggregate_metrics(run_ids)
-    print(metrics["time_per_move"])
+    return aggregate_metrics, config

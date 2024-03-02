@@ -8,6 +8,8 @@ APOCRITA_USER = acw549
 START_SEED = 1
 END_SEED = 5
 
+RUN_NAME = "MCGS"
+
 # Used to login to apocrita server
 .SILENT: apocrita_login
 apocrita_login:
@@ -26,19 +28,21 @@ apocrita_clone_repo:
 apocrita_build_and_run:
 	sudo expect ./scripts/apocrita_build_and_run.sh \
  	${APOCRITA_USER} ${APOCRITA_PASSPHRASE} ${APOCRITA_USER_PASSWORD} ${AP_PRIVATE_KEY_PATH} \
- 	${GIT_BRANCH} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN} ${START_SEED} ${END_SEED}
+ 	${GIT_BRANCH} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN} ${START_SEED} ${END_SEED} ${RUN_NAME}
 
+# Aggregates the results of the main.py on apocrita using apptainer
 .SILENT: apocrita_aggregate
 apocrita_aggregate:
 	sudo expect ./scripts/apocrita_aggregate.sh \
  	${APOCRITA_USER} ${APOCRITA_PASSPHRASE} ${APOCRITA_USER_PASSWORD} ${AP_PRIVATE_KEY_PATH} \
- 	${GIT_BRANCH} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN} ${START_SEED} ${END_SEED}
+ 	${GIT_BRANCH} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN} ${START_SEED} ${END_SEED} ${RUN_NAME}
 
+# Builds and runs the main.py on apocrita using apptainer and aggregates the results
  .SILENT: apocrita_build_and_run_and_aggregate
 apocrita_build_and_run_and_aggregate:
 	sudo expect ./scripts/apocrita_build_and_run_and_aggregate.sh \
  	${APOCRITA_USER} ${APOCRITA_PASSPHRASE} ${APOCRITA_USER_PASSWORD} ${AP_PRIVATE_KEY_PATH} \
- 	${GIT_BRANCH} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN} ${START_SEED} ${END_SEED}
+ 	${GIT_BRANCH} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN} ${START_SEED} ${END_SEED} ${RUN_NAME}
 
 
 # Builds and runs the playground.py on apocrita using apptainer

@@ -4,7 +4,6 @@
 #$ -l h_rt=1:0:0
 #$ -cwd
 #$ -j y
-#$ -N Aggregate
 #$ -o job_results
 
 module load python/3.8.5

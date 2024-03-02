@@ -26,6 +26,9 @@ class NeptuneLogger:
         file = File.as_html(data_frame)
         self.run[output_path].upload(file)
 
+    def upload_config(self, output_path, data):
+        self.run[output_path] = data
+
     def close(self):
         self.run.stop()
 
