@@ -68,7 +68,7 @@ def aggregate_metrics(run_ids):
     all_metrics = {}
     # Load all runs
     for run_id in run_ids:
-        all_metrics[run_id] = load_run("markotot/MCGS", f"MCGS-{run_id}")
+        all_metrics[run_id] = load_run("markotot/MCGS", f"{run_id}")
 
     # Find the max steps for each metric
     for metric in analysed_metrics:
