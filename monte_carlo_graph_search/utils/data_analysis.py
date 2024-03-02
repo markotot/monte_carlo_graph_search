@@ -1,4 +1,5 @@
 import neptune
+import pandas as pd
 
 analysed_metrics = [
     "backpropagation_time",
@@ -63,33 +64,44 @@ def load_run(project_id, run_id):
 
 if __name__ == "__main__":
 
-    run_ids = [131, 132, 133]
+    run_ids = [134, 135, 136]
     aggregate_metrics = {}
-
+    all_metrics = {}
     # Load all runs
     for run_id in run_ids:
-        run_metrics = load_run("markotot/MCGS", f"MCGS-{run_id}")
+        all_metrics[run_id] = load_run("markotot/MCGS", f"MCGS-{run_id}")
 
-        for metric in run_metrics:
-            if run_id == 131:
-                if len(run_metrics[metric]) > 1:
-                    run_metrics[metric] = run_metrics[metric].drop([len(run_metrics[metric]) - 1])
-
-            if metric not in aggregate_metrics:
-                aggregate_metrics[metric] = run_metrics[metric]
-            else:
-                # If the run has more steps than the aggregate, add the missing steps
-                agg_len = len(aggregate_metrics[metric])
-                step_difference = len(run_metrics[metric]) - agg_len
-                if step_difference > 0:
-                    for x in range(1, step_difference + 1):
-                        # new row will have the step of the last row + 1, and the rest of the columns will be 0
-                        new_row = [agg_len + x] + [0] * (len(aggregate_metrics[metric].columns) - 1)
-                        aggregate_metrics[metric].loc[x + agg_len - 1] = new_row
-
-                aggregate_metrics[metric] += run_metrics[metric]
-
-    for metric in aggregate_metrics:
-        aggregate_metrics[metric] /= len(run_ids)
+    #     for metric in run_metrics:
+    #         # if run_id == 131:
+    #         #     if len(run_metrics[metric]) > 1:
+    #         #         run_metrics[metric] = run_metrics[metric].drop([len(run_metrics[metric]) - 1])
+    #
+    #         if metric not in aggregate_metrics:
+    #             aggregate_metrics[metric] = run_metrics[metric]
+    #         else:
+    #             # If the run has more steps than the aggregate, add the missing steps
+    #             agg_len = len(aggregate_metrics[metric])
+    #             step_difference = len(run_metrics[metric]) - agg_len
+    #             if step_difference > 0:
+    #                 for x in range(1, step_difference + 1):
+    #                     # new row will have the step of the last row + 1, and the rest of the columns will be 0
+    #                     new_row = [agg_len + x] + [0] * (len(aggregate_metrics[metric].columns) - 1)
+    #                     aggregate_metrics[metric].loc[x + agg_len - 1] = new_row
+    #
+    #             aggregate_metrics[metric] += run_metrics[metric]
+    #
+    # for metric in aggregate_metrics:
+    #     aggregate_metrics[metric] /= len(run_ids)
+    for metric in analysed_metrics:
+        max_steps = 0
+        for run_id in run_ids:
+            max_steps = max(max_steps, len(all_metrics[run_id][metric]))
+        aggregate_metrics[metric] = pd.DataFrame(range(1, max_steps + 1), columns=["step"])
+    for metric in analysed_metrics:
+        for run_id in run_ids:
+            value_data_frame = all_metrics[run_id][metric].rename(columns={"value": run_id})
+            aggregate_metrics[metric] = pd.concat(
+                [aggregate_metrics[metric], value_data_frame[run_id]], join="outer", axis=1
+            )
 
     print(aggregate_metrics["moves"])
