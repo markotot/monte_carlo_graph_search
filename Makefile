@@ -5,6 +5,9 @@ PROJECT_NAME = monte_carlo_graph_search
 AP_PRIVATE_KEY_PATH = ~/Apocrita/apocrita.ssh
 APOCRITA_USER = acw549
 
+START_SEED = 10
+END_SEED = 15
+
 # Used to login to apocrita server
 .PHONE: apocrita_login
 apocrita_login:
@@ -23,7 +26,7 @@ apocrita_clone_repo:
 apocrita_build_and_run:
 	sudo expect ./scripts/apocrita_build_and_run.sh \
  	${APOCRITA_USER} ${APOCRITA_PASSPHRASE} ${APOCRITA_USER_PASSWORD} ${AP_PRIVATE_KEY_PATH} \
- 	${GIT_BRANCH} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN}
+ 	${GIT_BRANCH} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN} ${START_SEED} ${END_SEED}
 
 # Builds and runs the playground.py on apocrita using apptainer
 .PHONY: apocrita_pg_build_and_run

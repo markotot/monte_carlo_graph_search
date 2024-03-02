@@ -9,6 +9,9 @@ set GIT_BRANCH [lindex $argv 4];
 set PROJECT_NAME [lindex $argv 5];
 set NEPTUNE_API_TOKEN [lindex $argv 6];
 
+set START_SEED [lindex $argv 7];
+set END_SEED [lindex $argv 8];
+
 spawn ssh -i $APOC_PRIVATE_KEY $APOC_USERNAME@login.hpc.qmul.ac.uk \
  "
  cd $PROJECT_NAME; \
@@ -21,7 +24,7 @@ spawn ssh -i $APOC_PRIVATE_KEY $APOC_USERNAME@login.hpc.qmul.ac.uk \
  rm myenvs; \
  echo NEPTUNE_API_TOKEN=$NEPTUNE_API_TOKEN > myenvs; \
  apptainer build --force mcgs.sif $PROJECT_NAME/apptainer/mcgs.def; \
- qsub $PROJECT_NAME/scripts/submit_array_job.sh;
+ qsub -t $START_SEED-$END_SEED $PROJECT_NAME/scripts/submit_array_job.sh;
  "
 expect "Enter passphrase for key '$APOC_PRIVATE_KEY':"
 send "$APOC_PASSPHRASE\r"
