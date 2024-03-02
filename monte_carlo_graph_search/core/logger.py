@@ -12,7 +12,6 @@ class NeptuneLogger:
             project=self.config.neptune_project,
             name=name,
             tags=tags,
-            custom_run_id="Test",
         )
 
         self.run["config"] = self.config

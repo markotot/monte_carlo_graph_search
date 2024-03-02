@@ -13,4 +13,4 @@ From: python:3.8
 
 %runscript
     cd monte_carlo_graph_search
-    bash scripts/launch_aggregate_data $SEED_START $SEED_END
+    bash scripts/launch_aggregate_data.sh
