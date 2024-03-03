@@ -9,4 +9,5 @@
 module load python/3.8.5
 
 # Replace the following line with a program or command
+echo "RUN_NAME=$1,START_ID=$2,END_ID=$3"
 apptainer run --env-file myenvs --env "RUN_NAME=$1,START_ID=$2,END_ID=$3" aggregate_data.sif
