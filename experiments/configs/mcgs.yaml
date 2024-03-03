@@ -8,7 +8,7 @@ search:
   seed: 1
   max_moves: 100
   num_rollouts: 1
-  rollout_depth: 1
+  rollout_depth: 5
   budget_per_move: 1000
   discount_factor: 0.999
 
