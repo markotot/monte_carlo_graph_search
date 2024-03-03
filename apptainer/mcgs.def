@@ -3,7 +3,6 @@ From: python:3.8
 %setup
 
 %files
-    monte_carlo_graph_search monte_carlo_graph_search
 
 %post
     apt-get -y update
@@ -12,4 +11,7 @@ From: python:3.8
 
 %runscript
     cd monte_carlo_graph_search
+    git pull
+    git checkout $GIT_BRANCH
+    git pull
     bash scripts/launch_exp.sh $RUN_NAME $SEED

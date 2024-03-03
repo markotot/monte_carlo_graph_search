@@ -2,4 +2,4 @@
 #python3 monte_carlo_graph_search/experiments/main.py --multirun $params
 
 
-python3 -m experiments.playground $SEED
+python3 -m experiments.playground

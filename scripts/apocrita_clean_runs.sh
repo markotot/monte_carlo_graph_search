@@ -16,17 +16,8 @@ set RUN_NAME [lindex $argv 9];
 
 spawn ssh -i $APOC_PRIVATE_KEY $APOC_USERNAME@login.hpc.qmul.ac.uk \
  "
- cd $PROJECT_NAME; \
- git pull; \
- git checkout $GIT_BRANCH; \
- git pull; \
- cd ../; \
-
- source ../../../../../etc/bashrc; \
- rm myenvs; \
- echo NEPTUNE_API_TOKEN=$NEPTUNE_API_TOKEN > myenvs; \
- apptainer build --force mcgs.sif --build-arg $GIT_BRANCH $PROJECT_NAME/apptainer/mcgs.def; \
- qsub -t $START_SEED-$END_SEED -N $RUN_NAME -v RUN_NAME=$RUN_NAME $PROJECT_NAME/scripts/submit_array_job.sh;\
+ rm jobs_results/*; \
+ rm experiment_runs/*; \
  "
 expect "Enter passphrase for key '$APOC_PRIVATE_KEY':"
 send "$APOC_PASSPHRASE\r"

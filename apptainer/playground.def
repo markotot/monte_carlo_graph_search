@@ -4,13 +4,19 @@ From: python:3.8
 %setup
 
 %files
-    monte_carlo_graph_search monte_carlo_graph_search
 
 %post
+    rm -r $PROJECT_NAME
+    git clone -b $GIT_BRANCH https://$GITHUB_USER:$GITHUB_TOKEN@github.com/markotot/$PROJECT_NAME.git
     apt-get -y update
     ls
     pip install -r monte_carlo_graph_search/requirements.txt
 
 %runscript
-    cd monte_carlo_graph_search
-    bash scripts/launch_playground.sh ${SEED}
+    cd $PROJECT_NAME; \
+    git pull; \
+    git checkout $GIT_BRANCH; \
+    git pull; \
+    cd ../; \
+    cd monte_carlo_graph_search; \
+    bash scripts/launch_playground.sh; \

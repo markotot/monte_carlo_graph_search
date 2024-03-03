@@ -10,3 +10,4 @@ df_b = pd.DataFrame(b, columns=["Column_B"])
 
 # Add the DataFrames element-wise
 result_df = df_a + df_b
+print(result_df)

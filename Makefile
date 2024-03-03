@@ -50,4 +50,14 @@ apocrita_build_and_run_and_aggregate:
 apocrita_pg_build_and_run:
 	sudo expect ./scripts/apocrita_build_and_run_playground.sh \
  	${APOCRITA_USER} ${APOCRITA_PASSPHRASE} ${APOCRITA_USER_PASSWORD} ${AP_PRIVATE_KEY_PATH} \
- 	${GIT_BRANCH} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN}
+ 	${GIT_USER} ${GIT_BRANCH} ${GIT_TOKEN} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN}
+
+.SILENT: apocrita_clean_runs
+apocrita_clean_runs:
+	sudo expect ./scripts/apocrita_clean.sh \
+ 	${APOCRITA_USER} ${APOCRITA_PASSPHRASE} ${APOCRITA_USER_PASSWORD} ${AP_PRIVATE_KEY_PATH} \
+ 	${GIT_BRANCH} ${PROJECT_NAME}
+
+.PHONY: test
+test:
+	echo "git clone -b ${GIT_BRANCH} https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/markotot/${PROJECT_NAME}.git"
