@@ -12,7 +12,6 @@ from monte_carlo_graph_search.environment.minigrid.custom_minigrid_env import (
 def run_app(config: DictConfig) -> None:
 
     logger = NeptuneLogger(config=config, name="MCGS")
-    logger.add_to_experiment_file(f"../{config.run_name}.txt")
 
     env = CustomMinigridEnv(env_config=config.env)
     agent = MCGSAgent(env=env, logger=logger, config=config)
@@ -38,6 +37,7 @@ def run_app(config: DictConfig) -> None:
     metrics = agent.get_final_metrics(done)
     logger.write(metrics, agent.move_counter)
 
+    logger.add_to_experiment_file(f"../{config.run_name}.txt")
     # plot_images(
     #     f"env seed: {config.env.seed}   agent seed: {config.search.seed}",
     #     images,
