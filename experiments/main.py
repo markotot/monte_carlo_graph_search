@@ -37,7 +37,7 @@ def run_app(config: DictConfig) -> None:
     metrics = agent.get_final_metrics(done)
     logger.write(metrics, agent.move_counter)
 
-    logger.add_to_experiment_file(f"../{config.run_name}.txt")
+    logger.add_to_experiment_file(f"../experiment_runs/{config.run_name}.txt")
     # plot_images(
     #     f"env seed: {config.env.seed}   agent seed: {config.search.seed}",
     #     images,

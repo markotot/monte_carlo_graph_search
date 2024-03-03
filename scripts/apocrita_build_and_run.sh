@@ -26,7 +26,7 @@ spawn ssh -i $APOC_PRIVATE_KEY $APOC_USERNAME@login.hpc.qmul.ac.uk \
  rm myenvs; \
  echo NEPTUNE_API_TOKEN=$NEPTUNE_API_TOKEN > myenvs; \
  apptainer build --force mcgs.sif $PROJECT_NAME/apptainer/mcgs.def; \
- qsub -t $START_SEED-$END_SEED -N $RUN_NAME $PROJECT_NAME/scripts/submit_array_job.sh;
+ qsub -t $START_SEED-$END_SEED -N $RUN_NAME -v RUN_NAME=$RUN_NAME $PROJECT_NAME/scripts/submit_array_job.sh;\
  "
 expect "Enter passphrase for key '$APOC_PRIVATE_KEY':"
 send "$APOC_PASSPHRASE\r"
