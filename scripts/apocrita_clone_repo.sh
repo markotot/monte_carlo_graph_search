@@ -10,10 +10,12 @@ set GITHUB_USER [lindex $argv 5];
 set GITHUB_TOKEN [lindex $argv 6];
 
 set PROJECT_NAME [lindex $argv 7];
-z
+
 spawn ssh -i $APOC_PRIVATE_KEY $APOC_USERNAME@login.hpc.qmul.ac.uk \
-"rm -r $PROJECT_NAME; \
- git clone -b $GIT_BRANCH https://$GITHUB_USER:$GITHUB_TOKEN@github.com/markotot/$PROJECT_NAME.git"
+"
+  rm -r -f $PROJECT_NAME; \
+  git clone -b $GIT_BRANCH https://$GITHUB_USER:$GITHUB_TOKEN@github.com/markotot/$PROJECT_NAME.git
+"
 expect "Enter passphrase for key '$APOC_PRIVATE_KEY':"
 send "$APOC_PASSPHRASE\r"
 expect "$APOC_USERNAME@login.hpc.qmul.ac.uk's password"
