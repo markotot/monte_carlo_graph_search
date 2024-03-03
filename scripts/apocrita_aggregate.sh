@@ -26,7 +26,7 @@ spawn ssh -i $APOC_PRIVATE_KEY $APOC_USERNAME@login.hpc.qmul.ac.uk \
  rm myenvs; \
  echo NEPTUNE_API_TOKEN=$NEPTUNE_API_TOKEN > myenvs; \
  apptainer build --force aggregate_data.sif $PROJECT_NAME/apptainer/aggregate_data.def; \
- qsub -N ${RUN_NAME}-Aggregate $PROJECT_NAME/scripts/submit_aggregate_job.sh; \
+ qsub -N ${RUN_NAME}-Aggregate $PROJECT_NAME/scripts/submit_aggregate_job.sh $RUN_NAME $START_SEED $END_SEED; \
  "
 expect "Enter passphrase for key '$APOC_PRIVATE_KEY':"
 send "$APOC_PASSPHRASE\r"

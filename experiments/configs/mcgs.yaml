@@ -32,3 +32,4 @@ use_backpropagation: True
 use_disabled_actions: False
 
 neptune_project: "markotot/MCGS"
+run_name: "experiment_run"
