@@ -8,7 +8,7 @@ search:
   seed: 1
   max_moves: 100
   num_rollouts: 1
-  rollout_depth: 50
+  rollout_depth: 1
   budget_per_move: 1000
   discount_factor: 0.999
 
@@ -21,7 +21,7 @@ novelty:
   use_novelty_detection: True
   novelty_factor: 0.01
   novelty_threshold: 0.25
-  inherit_novelty_factor: 1.5
+  inherit_novelty_factor: 0.1
   use_novelty_for_best_step: True
 
 stored_rollouts:
