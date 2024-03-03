@@ -1,6 +1,6 @@
 env:
   seed: 121
-  size: 8
+  size: 16
   level_name: "default" # Can be ["default", "test16", "labyrinth16"]
   action_failure_probability: 0.0
 
