@@ -21,7 +21,7 @@ novelty:
   use_novelty_detection: True
   novelty_factor: 0.01
   novelty_threshold: 0.25
-  inherit_novelty_factor: 0.1
+  inherit_novelty_factor: 0.0
   use_novelty_for_best_step: True
 
 stored_rollouts:
