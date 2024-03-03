@@ -8,7 +8,7 @@ from monte_carlo_graph_search.utils.data_analysis import aggregate_metrics
 @hydra.main(version_base=None, config_path="configs", config_name="aggregate_data")
 def run_app(config: DictConfig) -> None:
 
-    with open(f"../{config.run_name}.txt", "r") as f:
+    with open(f"{config.run_name}.txt", "r") as f:
         run_ids = [line.rstrip() for line in f]
 
     metrics, run_config = aggregate_metrics(run_ids)

@@ -5,9 +5,9 @@ PROJECT_NAME = monte_carlo_graph_search
 AP_PRIVATE_KEY_PATH = ~/Apocrita/apocrita.ssh
 APOCRITA_USER = acw549
 
+#EXPERIMENT CONFIG
 START_SEED = 1
 END_SEED = 5
-
 RUN_NAME = "MCGS"
 
 # Used to login to apocrita server
@@ -37,7 +37,7 @@ apocrita_aggregate:
  	${APOCRITA_USER} ${APOCRITA_PASSPHRASE} ${APOCRITA_USER_PASSWORD} ${AP_PRIVATE_KEY_PATH} \
  	${GIT_BRANCH} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN} ${START_SEED} ${END_SEED} ${RUN_NAME}
 
-# Builds and runs the main.py on apocrita using apptainer and aggregates the results
+# Builds and runs and aggregates the results of the main.py on apocrita using apptainer
  .SILENT: apocrita_build_and_run_and_aggregate
 apocrita_build_and_run_and_aggregate:
 	sudo expect ./scripts/apocrita_build_and_run_and_aggregate.sh \
