@@ -95,9 +95,19 @@ def aggregate_metrics(run_ids):
 
     # Calculate the mean, std, max, and min for each metric
     for metric in analysed_metrics:
-        aggregate_metrics[metric]["mean"] = aggregate_metrics[metric].iloc[:, 1:].mean(numeric_only=True, axis=1)
-        aggregate_metrics[metric]["std"] = aggregate_metrics[metric].iloc[:, 1:].std(numeric_only=True, axis=1)
-        aggregate_metrics[metric]["max"] = aggregate_metrics[metric].iloc[:, 1:].max(numeric_only=True, axis=1)
-        aggregate_metrics[metric]["min"] = aggregate_metrics[metric].iloc[:, 1:].min(numeric_only=True, axis=1)
+
+        data = aggregate_metrics[metric].iloc[:, 1:]
+        aggregate_metrics[metric]["mean"] = data.mean(numeric_only=True, axis=1)
+        aggregate_metrics[metric]["std"] = data.std(numeric_only=True, axis=1)
+        aggregate_metrics[metric]["max"] = data.max(numeric_only=True, axis=1)
+        aggregate_metrics[metric]["min"] = data.min(numeric_only=True, axis=1)
 
     return aggregate_metrics, config
+
+
+if __name__ == "__main__":
+    run_ids = ["MCGS-496", "MCGS-495", "MCGS-494"]
+    metrics, run_config = aggregate_metrics(run_ids)
+
+    print(metrics)
+    print(run_config)
