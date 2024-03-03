@@ -50,12 +50,12 @@ apocrita_build:
  	${APOCRITA_USER} ${APOCRITA_PASSPHRASE} ${APOCRITA_USER_PASSWORD} ${AP_PRIVATE_KEY_PATH} \
  	${GIT_BRANCH} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN}
 
-# Builds and runs the playground.py on apocrita using apptainer
-.SILENT: apocrita_pg_build_and_run
-apocrita_pg_build_and_run:
-	sudo expect ./scripts/apocrita_build_and_run_playground.sh \
+# Builds and runs the main.py on apocrita using apptainer
+.SILENT: apocrita_run
+apocrita_run:
+	sudo expect ./scripts/apocrita_run.sh \
  	${APOCRITA_USER} ${APOCRITA_PASSPHRASE} ${APOCRITA_USER_PASSWORD} ${AP_PRIVATE_KEY_PATH} \
- 	${GIT_USER} ${GIT_BRANCH} ${GIT_TOKEN} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN}
+ 	${GIT_BRANCH} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN} ${START_SEED} ${END_SEED} ${RUN_NAME}
 
 .SILENT: apocrita_clean_runs
 apocrita_clean_runs:
