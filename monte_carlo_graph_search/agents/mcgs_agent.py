@@ -368,7 +368,7 @@ class MCGSAgent:
 
         end_time = time.perf_counter()
         metrics = {
-            "merged_nodes": merge_counter,
+            "rollout_merged_nodes": merge_counter,
             "storing_nodes_time": (end_time - start_time),
             "novel_nodes_added": novel_nodes_added,
         }
