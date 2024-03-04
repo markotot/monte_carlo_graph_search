@@ -63,6 +63,7 @@ class MCGSAgent:
         remaining_budget = self.config.search.budget_per_move
         iterations = 0
 
+        # TODO: add metrics so that they are per move
         while remaining_budget > 0:
 
             # Selection
@@ -172,9 +173,10 @@ class MCGSAgent:
         actions_to_new_nodes = []
 
         spent_budget = 0
-        if (
-            node.is_leaf
-        ):  # Nodes might not be leaves if the environment is fully stochastic, and the selection phase gets complicated
+        merged_nodes = 0
+
+        # Nodes might not be leaves if the environment is fully stochastic, and the selection phase gets complicated
+        if node.is_leaf:
             node.is_leaf = False
             self.graph.remove_from_frontier(node)
 
@@ -189,9 +191,11 @@ class MCGSAgent:
             if child is not None:
                 new_nodes.append(child)
                 actions_to_new_nodes.append(action)
-
+            else:
+                merged_nodes += 1
         end_time = time.perf_counter()
         metrics = {
+            "expansion_merge": merged_nodes,
             "expansion_time": (end_time - start_time),
             "expansion_spent_budget": spent_budget,
         }
