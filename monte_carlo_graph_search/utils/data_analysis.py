@@ -102,12 +102,22 @@ def aggregate_metrics(run_ids):
         aggregate_metrics[metric]["max"] = data.max(numeric_only=True, axis=1)
         aggregate_metrics[metric]["min"] = data.min(numeric_only=True, axis=1)
 
-    return aggregate_metrics, config
+    essential_metrics_names = []
+    essential_metrics = []
+    for metric_name in aggregate_metrics.keys():
+        if len(aggregate_metrics[metric_name]) == 1:
+            data = aggregate_metrics[metric_name].iloc[:, -4:].values.squeeze()
+            essential_metrics.append(data)
+            essential_metrics_names.append(metric_name)
+
+    essential_metrics = pd.DataFrame(
+        essential_metrics, columns=["mean", "std", "max", "min"], index=essential_metrics_names
+    )
+    return aggregate_metrics, essential_metrics, config
 
 
 if __name__ == "__main__":
     run_ids = ["MCGS-496", "MCGS-495", "MCGS-494"]
-    metrics, run_config = aggregate_metrics(run_ids)
-
+    metrics, essential_metrics, run_config = aggregate_metrics(run_ids)
     print(metrics)
     print(run_config)

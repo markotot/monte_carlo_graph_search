@@ -11,7 +11,7 @@ def run_app(config: DictConfig) -> None:
     with open(f"../experiment_runs/{config.run_name}.txt", "r") as f:
         run_ids = [line.rstrip() for line in f]
 
-    metrics, run_config = aggregate_metrics(run_ids)
+    metrics, essential_metrics, run_config = aggregate_metrics(run_ids)
 
     logger = NeptuneLogger(config=config, name="Aggregate Data")
 
@@ -21,6 +21,7 @@ def run_app(config: DictConfig) -> None:
         logger.upload_data_frame(
             output_path=f"metrics/{config.start_run_id}-{config.end_run_id}/{metric}", data_frame=metrics[metric]
         )
+    logger.upload_data_frame(output_path="essential_metrics", data_frame=essential_metrics)
 
     logger.close()
 
