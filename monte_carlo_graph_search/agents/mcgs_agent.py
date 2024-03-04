@@ -335,8 +335,9 @@ class MCGSAgent:
 
                         parent_node = self.graph.get_node_info(previous_obs)
                         node, node_reward = self.add_new_observation(current_obs, parent_node, action, reward, done)
-                        nodes.append(node)
-                        node_rewards.append(node_reward)
+                        # if node is not None:
+                        #     nodes.append(node)
+                        #     node_rewards.append(node_reward)
                     if node.novelty_value >= 1:
                         novel_nodes_added += 1
 
