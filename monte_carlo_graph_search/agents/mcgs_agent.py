@@ -88,7 +88,7 @@ class MCGSAgent:
 
                 # Storing rollouts
                 if self.config.stored_rollouts.use_stored_rollouts:
-                    storing_nodes_metrics = self.add_novelties_to_graph(trajectories)
+                    storing_nodes_metrics = self.add_stored_nodes(trajectories)
                     utils.update_metrics(aggregated_metrics, storing_nodes_metrics)
 
                 # Backpropagation
@@ -336,7 +336,7 @@ class MCGSAgent:
 
         return new_node, reward
 
-    def add_novelties_to_graph(self, trajectories):
+    def add_stored_nodes(self, trajectories):
 
         start_time = time.perf_counter()
         novel_nodes_added = 0

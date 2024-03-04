@@ -120,8 +120,8 @@ class Graph:
     def has_path(self, node_from, node_to):
         return nx.has_path(self.graph, node_from.id, node_to.id)
 
-    def get_node_info(self, id):
-        return self.graph.nodes[id]["info"]
+    def get_node_info(self, observation):
+        return self.graph.nodes[observation]["info"]
 
     def get_all_nodes_info(self):
         return list(nx.get_node_attributes(self.graph, "info").values())
@@ -166,7 +166,7 @@ class Graph:
 
     def get_closest_done_node(self, only_reachable=False):
 
-        selectable_nodes = [x for x in self.get_all_nodes_info() if x.done and x.unreachable is False]
+        selectable_nodes = [x for x in self.get_all_nodes_info() if x.done]
         if only_reachable:
             selectable_nodes = [x for x in selectable_nodes if x.unreachable is False]
 
@@ -185,8 +185,8 @@ class Graph:
 
         return best_node
 
-    def has_node(self, id):
-        return self.graph.has_node(id)
+    def has_node(self, observation):
+        return self.graph.has_node(observation)
 
     def has_edge(self, edge):
         parent = edge.node_from
@@ -204,14 +204,14 @@ class Graph:
 
         return node_list
 
-    def get_children_with_id(self, id):
+    def get_children_with_id(self, node_id):
         node_list = []
-        for n in self.graph.successors(id):
+        for n in self.graph.successors(node_id):
             node_list.append(self.graph.nodes[n]["info"])
         return node_list
 
-    def get_child_with_action(self, id, action):
-        for edge in self.graph.out_edges(id, data=True):
+    def get_child_with_action(self, identifier, action):
+        for edge in self.graph.out_edges(identifier, data=True):
             if edge[2]["info"].action == action:
                 return edge[1]  # return child node
         return None
@@ -230,6 +230,7 @@ class Graph:
         return i
 
     def get_metrics(self):
+
         metrics = {
             "total_nodes": len(self.graph.nodes),
             "total_edges": len(self.graph.edges),
@@ -342,8 +343,8 @@ class Graph:
                     visited.append(child)
                     queue.append(child)
 
+    # TODO: Implement this function properly, the logic is wrong last if-else is not correct
     def reroute_all_optimized(self):
-        i = 0
         all_nodes = self.get_all_nodes_info()
         for n in all_nodes:
             n.unreachable = True
@@ -371,5 +372,3 @@ class Graph:
                         child_node.action = self.get_edge_info(node, child_node).action
                         queue.append(child)
                     visited.append(child)
-                    i += 1
-        # print(i)
