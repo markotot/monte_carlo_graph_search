@@ -24,7 +24,6 @@ def run_app(config: DictConfig) -> None:
 
     total_reward = 0
     for _ in range(config.search.max_moves):
-
         action = agent.plan()
         state, reward, done, info = agent.act(action)
         image = env.render()
