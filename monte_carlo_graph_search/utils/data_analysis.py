@@ -1,7 +1,7 @@
 import neptune
 import pandas as pd
 
-analysed_metrics = [
+search_metrics = [
     "backpropagation_time",
     "expansion_time",
     "selection_time",
@@ -23,18 +23,6 @@ analysed_metrics = [
     "selection_spent_budget",
     "simulation_spent_budget",
     "iterations_per_move",
-    "key_discovered",
-    "door_discovered",
-    "goal_discovered",
-    "subgoal_door_moves",
-    "subgoal_door_nodes",
-    "subgoal_door_forward_model_calls",
-    "subgoal_goal_moves",
-    "subgoal_goal_nodes",
-    "subgoal_goal_forward_model_calls",
-    "subgoal_key_moves",
-    "subgoal_key_nodes",
-    "subgoal_key_forward_model_calls",
     "total_nodes",
     "total_edges",
     "total_frontier_nodes",
@@ -49,8 +37,23 @@ analysed_metrics = [
     "game_finished",
 ]
 
+env_metrics = [
+    "key_discovered",
+    "door_discovered",
+    "goal_discovered",
+    "subgoal_door_moves",
+    "subgoal_door_nodes",
+    "subgoal_door_forward_model_calls",
+    "subgoal_goal_moves",
+    "subgoal_goal_nodes",
+    "subgoal_goal_forward_model_calls",
+    "subgoal_key_moves",
+    "subgoal_key_nodes",
+    "subgoal_key_forward_model_calls",
+]
 
-def load_run(project_id, run_id):
+
+def load_run(project_id, run_id, analysed_metrics):
 
     run = neptune.init_run(project=project_id, with_id=run_id, mode="read-only")
 
@@ -66,13 +69,13 @@ def load_run(project_id, run_id):
     return env_seed, agent_seed, metrics, config
 
 
-def aggregate_metrics(run_ids):
+def aggregate_metrics(run_ids, analysed_metrics):
 
     aggregate_metrics = {}
     all_metrics = {}
     # Load all runs
     for run_id in run_ids:
-        env_seed, agent_seed, metrics, config = load_run("markotot/MCGS", f"{run_id}")
+        env_seed, agent_seed, metrics, config = load_run("markotot/MCGS", f"{run_id}", analysed_metrics)
         all_metrics[f"MCGS-{env_seed}-{agent_seed}"] = metrics
 
     del config["env"]["seed"]
@@ -118,6 +121,7 @@ def aggregate_metrics(run_ids):
 
 if __name__ == "__main__":
     run_ids = ["MCGS-496", "MCGS-495", "MCGS-494"]
-    metrics, essential_metrics, run_config = aggregate_metrics(run_ids)
+    analysed_metrics = search_metrics + env_metrics
+    metrics, essential_metrics, run_config = aggregate_metrics(run_ids, analysed_metrics)
     print(metrics)
     print(run_config)

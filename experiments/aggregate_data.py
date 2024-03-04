@@ -2,7 +2,11 @@ import hydra
 from omegaconf import DictConfig
 
 from monte_carlo_graph_search.core.logger import NeptuneLogger
-from monte_carlo_graph_search.utils.data_analysis import aggregate_metrics
+from monte_carlo_graph_search.utils.data_analysis import (
+    aggregate_metrics,
+    env_metrics,
+    search_metrics,
+)
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="aggregate_data")
@@ -11,7 +15,7 @@ def run_app(config: DictConfig) -> None:
     with open(f"../experiment_runs/{config.run_name}.txt", "r") as f:
         run_ids = [line.rstrip() for line in f]
 
-    metrics, essential_metrics, run_config = aggregate_metrics(run_ids)
+    metrics, essential_metrics, run_config = aggregate_metrics(run_ids, search_metrics + env_metrics)
 
     logger = NeptuneLogger(config=config, name="Aggregate Data")
 
