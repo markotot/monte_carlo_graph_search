@@ -340,6 +340,7 @@ class MCGSAgent:
 
         start_time = time.perf_counter()
         novel_nodes_added = 0
+        merge_counter = 0
         # Trajectory is a list of tuples (parent_obs, current_obs, action, reward, done)
         for trajectory in trajectories:
 
@@ -356,16 +357,18 @@ class MCGSAgent:
                 node_is_new = self.graph.has_node(observation) is False
                 edge_is_new = self.graph.has_edge_by_nodes(parent_observation, observation) is False
                 novelty_criteria = novelty > 0 or self.config.stored_rollouts.only_store_novel_nodes is False
-                if (node_is_new or edge_is_new) and novelty_criteria:
-
-                    parent_node = self.graph.get_node_info(parent_observation)
-                    node, _ = self.add_new_observation(observation, parent_node, action, reward, done)
-
-                    if node is not None and node.novelty_value >= 1:
-                        novel_nodes_added += 1
+                if node_is_new or edge_is_new:
+                    if novelty_criteria:
+                        parent_node = self.graph.get_node_info(parent_observation)
+                        node, _ = self.add_new_observation(observation, parent_node, action, reward, done)
+                        if node is not None and node.novelty_value >= 1:
+                            novel_nodes_added += 1
+                else:
+                    merge_counter += 1
 
         end_time = time.perf_counter()
         metrics = {
+            "merged_nodes": merge_counter,
             "storing_nodes_time": (end_time - start_time),
             "novel_nodes_added": novel_nodes_added,
         }
