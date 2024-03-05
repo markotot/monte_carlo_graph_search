@@ -18,10 +18,9 @@ def run_app(config: DictConfig) -> None:
     env = CustomMinigridEnv(env_config=config.env)
     agent = MCGSAgent(env=env, logger=logger, config=config)
 
-    images = []
-    # image = env.render()
-    # plt.imshow(image)
-    # plt.show()
+    image = env.render()
+    images = [image]
+    logger.upload_image("images/initial_state", image)
 
     total_reward = 0
     for _ in range(config.search.max_moves):
@@ -35,11 +34,13 @@ def run_app(config: DictConfig) -> None:
 
         # agent.graph.draw_graph()
 
-    plot_images(
+    combined_images = plot_images(
         f"env seed: {config.env.seed}   agent seed: {config.search.seed}",
         images,
         total_reward,
+        save_to_neptune=True,
     )
+    logger.upload_image("images/combined_images", combined_images)
 
     metrics = agent.get_final_metrics(done)
     logger.write(metrics, agent.move_counter)

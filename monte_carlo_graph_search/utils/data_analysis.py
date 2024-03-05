@@ -62,7 +62,7 @@ def load_run(project_id, run_id, analysed_metrics):
     agent_seed = run["config/search/seed"].fetch()
     config = run["config"].fetch()
     for metric in analysed_metrics:
-        metrics[metric] = run[metric].fetch_values(include_timestamp=False)
+        metrics[metric] = run[f"metrics/{metric}"].fetch_values(include_timestamp=False)
 
     run.stop()
 
