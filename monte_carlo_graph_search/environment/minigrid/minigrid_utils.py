@@ -67,17 +67,17 @@ def agent_action_to_text(action):
     }[action]
 
 
-def observation_to_text(node):
-    agent_pos_x = node.id[0]
-    agent_pos_y = node.id[1]
-    agent_dir = agent_rotation_to_text(node.id[2])
-    carry = node.id[3]
-    door_open = node.id[4]
-    door_locked = node.id[5]
+def observation_to_text(observation):
+    agent_pos_x = observation[0]
+    agent_pos_y = observation[1]
+    agent_dir = agent_rotation_to_text(observation[2])
+    carry = observation[3]
+    door_open = observation[4]
+    door_locked = observation[5]
     return (
         f"Agent position: ({agent_pos_x}, {agent_pos_y})\t"
         f"Agent direction: {agent_dir}\t"
         f"Carry: {carry}\t"
-        f"Door open: {door_open}"
+        f"Door open: {door_open}\n"
         f"Door locked: {door_locked}\n"
     )

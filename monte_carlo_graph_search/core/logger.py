@@ -45,7 +45,3 @@ class NeptuneLogger:
 
     def get_id(self):
         return self.run["sys/id"].fetch()
-
-    def add_to_experiment_file(self, file_path):
-        with open(file_path, "a+") as f:
-            f.write(f"{self.get_id()}\n")

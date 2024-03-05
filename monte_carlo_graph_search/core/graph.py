@@ -26,15 +26,15 @@ class Graph:
 
     def add_node(self, node):
 
-        if self.graph.has_node(node.id) is False:
-            self.graph.add_node(node.id, info=node)
+        if self.graph.has_node(node.observation) is False:
+            self.graph.add_node(node.observation, info=node)
             if node.done is False:
                 self.add_to_frontier(node)
             return True
         return False
 
     def add_edge(self, edge):
-        self.graph.add_edge(edge.node_from.id, edge.node_to.id, info=edge)
+        self.graph.add_edge(edge.node_from.observation, edge.node_to.observation, info=edge)
 
     def add_to_frontier(self, node):
         self.frontier.append(node)
@@ -88,7 +88,7 @@ class Graph:
     def reroute_paths(self, root_node):
 
         for node_id, node in self.graph.nodes.data("info"):
-            if root_node.id != node_id:
+            if root_node.observation != node_id:
                 if self.has_path(self.root_node, node):
                     self.reroute_path(self.root_node, node)
                     node.unreachable = False
@@ -101,7 +101,8 @@ class Graph:
         node_to.reroute(node_path, actions)
 
     def get_path(self, node_from, node_to):
-        observations = nx.dijkstra_path(self.graph, node_from.id, node_to.id)
+
+        observations = nx.dijkstra_path(self.graph, node_from.observation, node_to.observation)
         actions = []
         for i in range(len(observations) - 1):
             actions.append(
@@ -110,15 +111,14 @@ class Graph:
                     self.get_node_info(observations[i + 1]),
                 ).action
             )
-
         return observations, actions
 
     def get_path_length(self, node_from, node_to):
-        nodes = nx.dijkstra_path(self.graph, node_from.id, node_to.id)
+        nodes = nx.dijkstra_path(self.graph, node_from.observation, node_to.observation)
         return len(nodes)
 
     def has_path(self, node_from, node_to):
-        return nx.has_path(self.graph, node_from.id, node_to.id)
+        return nx.has_path(self.graph, node_from.observation, node_to.observation)
 
     def get_node_info(self, observation):
         return self.graph.nodes[observation]["info"]
@@ -147,7 +147,7 @@ class Graph:
 
         if len(selectable_nodes) > 0:
             best_node = selectable_nodes[0]
-            best_node_value = best_node.value() + self.get_edge_info(best_node.parent, best_node).reward
+            best_node_value = best_node.get_value() + self.get_edge_info(best_node.parent, best_node).reward
             if self.use_novelty_for_best_step:
                 best_node_value += best_node.novelty_value
         else:
@@ -155,7 +155,7 @@ class Graph:
             best_node_value = None
 
         for n in selectable_nodes:
-            selected_node_value = n.value() + self.get_edge_info(n.parent, n).reward
+            selected_node_value = n.get_value() + self.get_edge_info(n.parent, n).reward
             if self.use_novelty_for_best_step:
                 selected_node_value += n.novelty_value
             if best_node_value < selected_node_value:
@@ -191,14 +191,14 @@ class Graph:
     def has_edge(self, edge):
         parent = edge.node_from
         child = edge.node_to
-        return self.graph.has_edge(parent.id, child.id)
+        return self.graph.has_edge(parent.observation, child.observation)
 
-    def has_edge_by_nodes(self, node_from, node_to):
-        return self.graph.has_edge(node_from, node_to)
+    def has_edge_by_observations(self, observation_from, observation_to):
+        return self.graph.has_edge(observation_from, observation_to)
 
     def get_children(self, node):
         node_list = []
-        for n in self.graph.successors(node.id):
+        for n in self.graph.successors(node.observation):
             child_node = self.graph.nodes[n]["info"]
             node_list.append(child_node)
 
@@ -220,7 +220,7 @@ class Graph:
         return len(self.graph.nodes)
 
     def get_edge_info(self, parent, child):
-        return self.graph.get_edge_data(parent.id, child.id)["info"]
+        return self.graph.get_edge_data(parent.observation, child.observation)["info"]
 
     def get_unreachable_nodes(self):
         i = 0
@@ -250,11 +250,11 @@ class Graph:
 
         for node in nodes_info.values():
 
-            if (node.novelty_value == 0 and node.value() == 0) or node not in self.frontier:
-                value_map[node.id] = ""
+            if (node.novelty_value == 0 and node.get_value() == 0) or node not in self.frontier:
+                value_map[node.observation] = ""
             else:
-                # value_map[node.id] = str(round(node.novelty_value + node.value(), 2))
-                value_map[node.id] = ""
+                # value_map[node.observation] = str(round(node.novelty_value + node.get_value(), 2))
+                value_map[node.observation] = ""
             node_size_map.append(30)
 
             if node == self.root_node:
@@ -325,7 +325,7 @@ class Graph:
         # BFS implementation
         visited = []
         queue = []
-        root_node_id = self.root_node.id
+        root_node_id = self.root_node.observation
 
         visited.append(root_node_id)
         queue.append(root_node_id)
@@ -338,37 +338,7 @@ class Graph:
                 if child not in visited:
                     child_node = self.get_node_info(child)
                     child_node.unreachable = False
-                    child_node.parent = node
+                    child_node.set_parent(node)
                     child_node.action = self.get_edge_info(node, child_node).action
                     visited.append(child)
                     queue.append(child)
-
-    # TODO: Implement this function properly, the logic is wrong last if-else is not correct
-    def reroute_all_optimized(self):
-        all_nodes = self.get_all_nodes_info()
-        for n in all_nodes:
-            n.unreachable = True
-
-        # BFS implementation
-        visited = []
-        queue = []
-        root_node_id = self.root_node.id
-
-        visited.append(root_node_id)
-        queue.append(root_node_id)
-
-        while queue:
-            node_id = queue.pop(0)
-            node = self.get_node_info(node_id)
-            for child in self.graph.successors(node_id):
-                # Set all of the new routes
-                if child not in visited:
-                    child_node = self.get_node_info(child)
-                    child_node.unreachable = False
-                    if child_node.parent == node:
-                        pass
-                    else:
-                        child_node.parent = node
-                        child_node.action = self.get_edge_info(node, child_node).action
-                        queue.append(child)
-                    visited.append(child)
