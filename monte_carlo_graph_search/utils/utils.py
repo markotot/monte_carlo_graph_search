@@ -27,6 +27,6 @@ def add_time_percentages(dictionary, total_time_value):
     return dictionary
 
 
-def add_to_experiment_file(self, file_path):
+def add_to_experiment_file(file_path, run_id):
     with open(file_path, "a+") as f:
-        f.write(f"{self.get_id()}\n")
+        f.write(f"{run_id}\n")

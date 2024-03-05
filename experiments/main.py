@@ -45,7 +45,7 @@ def run_app(config: DictConfig) -> None:
     metrics = agent.get_final_metrics(done)
     logger.write(metrics, agent.move_counter)
 
-    utils.add_to_experiment_file(f"../experiment_runs/{config.run_name}.txt")
+    utils.add_to_experiment_file(f"../experiment_runs/{config.run_name}.txt", logger.get_id())
     logger.close()
 
 
