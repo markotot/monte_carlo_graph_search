@@ -14,9 +14,6 @@ set END_SEED [lindex $argv 8];
 
 set RUN_NAME [lindex $argv 9];
 
-
-ECHO_CMD="echo Test ${RUN_NAME} ${GIT_BRANCH} ${PROJECT_NAME}"
-
 spawn ssh -i $APOC_PRIVATE_KEY $APOC_USERNAME@login.hpc.qmul.ac.uk \
  "
   source ../../../../../etc/bashrc; \

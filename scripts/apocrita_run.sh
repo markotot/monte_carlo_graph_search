@@ -14,13 +14,17 @@ set END_SEED [lindex $argv 8];
 
 set RUN_NAME [lindex $argv 9];
 
+
+set EXPERIMENT_JOB_PARAMS "-t $START_SEED-$END_SEED -N $RUN_NAME -v RUN_NAME=$RUN_NAME,GIT_BRANCH=$GIT_BRANCH $PROJECT_NAME/scripts/submit_array_job.sh"
+set AGGREGATE_JOB_PARAMS "-hold_jid ${RUN_NAME} -N ${RUN_NAME}-Aggregate -v RUN_NAME=$RUN_NAME,START_ID=$START_SEED,END_ID=$END_SEED $PROJECT_NAME/scripts/submit_aggregate_job.sh"
+
 spawn ssh -i $APOC_PRIVATE_KEY $APOC_USERNAME@login.hpc.qmul.ac.uk \
  "
   source ../../../../../etc/bashrc; \
   rm myenvs; \
   echo NEPTUNE_API_TOKEN=$NEPTUNE_API_TOKEN > myenvs; \
-  qsub -t $START_SEED-$END_SEED -N $RUN_NAME -v RUN_NAME=$RUN_NAME,GIT_BRANCH=$GIT_BRANCH $PROJECT_NAME/scripts/submit_array_job.sh;\
-  qsub -hold_jid ${RUN_NAME} -N ${RUN_NAME}-Aggregate -v RUN_NAME=$RUN_NAME,START_ID=$START_SEED,END_ID=$END_SEED $PROJECT_NAME/scripts/submit_aggregate_job.sh; \
+  qsub $EXPERIMENT_JOB_PARAMS ; \
+  qsub $AGGREGATE_JOB_PARAMS; \
  "
 expect "Enter passphrase for key '$APOC_PRIVATE_KEY':"
 send "$APOC_PASSPHRASE\r"
