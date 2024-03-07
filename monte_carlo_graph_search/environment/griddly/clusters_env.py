@@ -1,10 +1,12 @@
+from os import getcwd
+
 import gym
 import numpy as np
 from griddly import GymWrapperFactory, gd
 from minigrid.envs import DoorKeyEnv
 
 
-class GriddlyEnv(DoorKeyEnv):
+class ClustersEnv(DoorKeyEnv):
     """
     Environment with a door and key, sparse reward
     """
@@ -14,10 +16,17 @@ class GriddlyEnv(DoorKeyEnv):
 
     def __init__(self, env_config):
 
-        if GriddlyEnv.initialized is False:
+        if ClustersEnv.initialized is False:
             wrapper = GymWrapperFactory()
-            wrapper.build_gym_from_yaml("ClustersEnv", "../monte_carlo_graph_search/environment/griddly/clusters.yaml")
-            GriddlyEnv.initialized = True
+
+            path = getcwd().split("/")[-1] == "experiments"
+            yaml_path = (
+                "../monte_carlo_graph_search/environment/griddly/clusters.yaml"
+                if path
+                else "monte_carlo_graph_search/environment/griddly/clusters.yaml"
+            )
+            wrapper.build_gym_from_yaml("ClustersEnv", yaml_path)
+            ClustersEnv.initialized = True
 
         self.env = gym.make(
             "GDY-ClustersEnv-v0",
@@ -38,7 +47,7 @@ class GriddlyEnv(DoorKeyEnv):
         self.action = action  # Save the original action
         self.state, self.reward, self.done, self.info = self.env.step(action)  # Do the step
         observation = self.observation()
-        GriddlyEnv.forward_model_calls += 1
+        ClustersEnv.forward_model_calls += 1
         return observation, self.reward, self.done, self.info
 
     def stochastic_step(self, action, action_failure_prob=None):
