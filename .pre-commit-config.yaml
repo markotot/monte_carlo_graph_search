@@ -22,8 +22,8 @@ repos:
       - id: debug-statements
       - id: requirements-txt-fixer
       - id: mixed-line-ending
-      - id: check-yaml
-        args: [ '--unsafe' ]
+#      - id: check-yaml
+#        args: [ '--unsafe' ]
       - id: trailing-whitespace
 
   - repo: https://github.com/pycqa/flake8

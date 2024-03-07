@@ -1,13 +1,14 @@
-import pandas as pd
+from monte_carlo_graph_search.environment.griddly.clusters_env import GriddlyEnv
 
-# Create your two lists
-a = [1, 2]
-b = [5, 6, 10]
+if __name__ == "__main__":
 
-# Create DataFrames from the lists
-df_a = pd.DataFrame(a, columns=["Column_B"])
-df_b = pd.DataFrame(b, columns=["Column_B"])
+    env = GriddlyEnv(env_config=None)
+    env.reset()
 
-# Add the DataFrames element-wise
-result_df = df_a + df_b
-print(result_df)
+    actions = [3, 4, 1, 2, 2, 3, 4, 4, 1, 4, 4, 1, 1, 3, 2, 2, 2, 1, 1, 4, 4, 2, 1, 4, 4, 3, 3, 3, 2, 3, 4]
+
+    for action in actions:
+        next_obs, reward, done, info = env.step(action)
+        print(env.get_observation())
+        env.render()
+        print("m")
