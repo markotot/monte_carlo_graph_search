@@ -7,7 +7,7 @@ APOCRITA_USER = acw549
 
 #EXPERIMENT CONFIG
 START_SEED = 1
-END_SEED = 100
+END_SEED = 10
 RUN_NAME = "MCGS"
 
 # Used to login to apocrita server
