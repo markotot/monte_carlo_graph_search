@@ -166,7 +166,7 @@ class Graph:
 
     def get_closest_done_node(self, only_reachable=False):
 
-        selectable_nodes = [x for x in self.get_all_nodes_info() if x.done]
+        selectable_nodes = [x for x in self.get_all_nodes_info() if (x.done and x.total_value > 0)]
         if only_reachable:
             selectable_nodes = [x for x in selectable_nodes if x.unreachable is False]
 
@@ -321,12 +321,13 @@ class Graph:
         all_nodes = self.get_all_nodes_info()
         for n in all_nodes:
             n.unreachable = True
+            n.parent = -1
+        self.root_node.parent = None
 
         # BFS implementation
         visited = []
         queue = []
         root_node_id = self.root_node.observation
-
         visited.append(root_node_id)
         queue.append(root_node_id)
 

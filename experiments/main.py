@@ -40,6 +40,7 @@ def run_app(config: DictConfig) -> None:
         image = env.render()
         images.append(image)
         total_reward += reward
+        print("Action:", action)
         if done:
             break
 
