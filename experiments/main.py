@@ -44,7 +44,7 @@ def run_app(config: DictConfig) -> None:
         if terminated or truncated:
             break
 
-        agent.graph.draw_graph()
+        # agent.graph.draw_graph()
 
     combined_images = plot_images(
         f"env seed: {config.env.seed}   agent seed: {config.search.seed}",
