@@ -36,6 +36,7 @@ class ClustersEnv:
             level=0,
             max_steps=50,
         )
+
         self.env.unwrapped.level = 0  # TODO: Fix directly in Griddly
         self.action_space = self.env.action_space
         self.is_stochastic = False
@@ -43,7 +44,8 @@ class ClustersEnv:
         self.action = None
         self.state = None
         self.reward = None
-        self.done = None
+        self.terminated = None
+        self.truncated = None
         self.info = None
 
         self.reset()
@@ -51,14 +53,24 @@ class ClustersEnv:
     def step(self, action):
 
         self.action = action  # Save the original action
-        self.state, self.reward, self.done, self.info = self.env.step(action)  # Do the step
+        self.state, self.reward, done, self.info = self.env.step(action)  # Do the step
+
         observation = self.observation()
         ClustersEnv.forward_model_calls += 1
-        return observation, self.reward, self.done, self.info
+
+        # Hack to find terminated vs truncated
+        if done:
+            self.terminated = self.reward == -1
+            self.truncated = self.reward != -1
+        else:
+            self.terminated = False
+            self.truncated = False
+
+        return observation, self.reward, self.terminated, self.truncated, self.info
 
     def stochastic_step(self, action, action_failure_prob=None):
-        self.action = action  # Save the original action
 
+        self.action = action  # Save the original action
         if self.is_stochastic:  # If the env is stochastic check if action should fail
             if action_failure_prob < self.config.action_failure_probability:  # If the action should fail, swap it here
                 action = 6  # No action
@@ -67,9 +79,12 @@ class ClustersEnv:
 
     def reset(self):
 
+        self.current_step = 0
+        self.action = None
         self.state = None
-        self.done = None
         self.reward = None
+        self.terminated = None
+        self.truncated = None
         self.info = None
 
         self.state = self.env.reset()
@@ -105,7 +120,8 @@ class ClustersEnv:
         x.action = copy.deepcopy(self.action)
         x.state = copy.deepcopy(self.state)
         x.reward = copy.deepcopy(self.reward)
-        x.done = copy.deepcopy(self.done)
         x.info = copy.deepcopy(self.info)
+        x.terminated = copy.deepcopy(self.terminated)
+        x.truncated = copy.deepcopy(self.truncated)
 
         return x

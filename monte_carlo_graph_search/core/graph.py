@@ -28,7 +28,7 @@ class Graph:
 
         if self.graph.has_node(node.observation) is False:
             self.graph.add_node(node.observation, info=node)
-            if node.done is False:
+            if node.terminated is False:
                 self.add_to_frontier(node)
             return True
         return False
@@ -79,7 +79,6 @@ class Graph:
                     best_node = n
                     best_node_value = n.uct_value() + noise[i] + novelty_factor * n.novelty_value
 
-            assert self.has_path(self.root_node, best_node)
             return best_node
 
     def set_root_node(self, root_node):
@@ -166,7 +165,8 @@ class Graph:
 
     def get_closest_done_node(self, only_reachable=False):
 
-        selectable_nodes = [x for x in self.get_all_nodes_info() if (x.done and x.total_value > 0)]
+        selectable_nodes = [x for x in self.get_all_nodes_info() if x.terminated]
+
         if only_reachable:
             selectable_nodes = [x for x in selectable_nodes if x.unreachable is False]
 
@@ -222,7 +222,7 @@ class Graph:
     def get_edge_info(self, parent, child):
         return self.graph.get_edge_data(parent.observation, child.observation)["info"]
 
-    def get_unreachable_nodes(self):
+    def count_unreachable_nodes(self):
         i = 0
         for node_info in self.get_all_nodes_info():
             if node_info.unreachable:
@@ -235,7 +235,7 @@ class Graph:
             "total_nodes": len(self.graph.nodes),
             "total_edges": len(self.graph.edges),
             "total_frontier_nodes": len(self.frontier),
-            "total_unreachable_nodes": self.get_unreachable_nodes(),
+            "total_unreachable_nodes": self.count_unreachable_nodes(),
             "new_nodes": len(self.new_nodes),
         }
 
@@ -265,7 +265,7 @@ class Graph:
                 node_color_map.append("grey")
             elif node in self.new_nodes:
                 node_color_map.append("pink")
-            elif node.done:
+            elif node.terminated:
                 node_color_map.append("green")
             elif node in self.frontier:
                 node_color_map.append("red")

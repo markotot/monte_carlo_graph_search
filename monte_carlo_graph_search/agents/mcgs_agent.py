@@ -19,7 +19,7 @@ class MCGSAgent:
         self.graph = Graph(seed=self.config.search.seed, config=config)
         self.novelty = novelty
 
-        # statistic counters, maybe move into another class
+        # statistics counters, maybe move into another class
         self.edge_counter = 0
         self.move_counter = 0
         self.num_simulations = 0  # One simulation has  N rollouts (N = number of children)
@@ -29,7 +29,8 @@ class MCGSAgent:
             observation=observation,
             parent=None,
             is_leaf=True,
-            done=False,
+            terminated=False,
+            truncated=False,
             action=None,
             value=0,
             visits=0,
@@ -41,7 +42,7 @@ class MCGSAgent:
         self.graph.add_node(self.root_node)
         self.novelty.update_posterior(
             self.root_node.observation,
-            self.root_node.done,
+            self.root_node.terminated,
             self.graph.get_number_of_nodes(),
             self.move_counter,
             self.env.forward_model_calls,
@@ -116,7 +117,7 @@ class MCGSAgent:
         end_time = time.perf_counter()
         time_per_move = end_time - start_time
 
-        # subgoals = self.novelty.get_discovered_subgoals()
+        subgoals = self.novelty.get_discovered_subgoals()
 
         aggregated_metrics.update(self.graph.get_metrics())
         aggregated_metrics.update(
@@ -126,9 +127,9 @@ class MCGSAgent:
             total_num_simulations=self.num_simulations,
             iterations_per_move=iterations,
             time_per_move=time_per_move,
-            # key_discovered=int(subgoals["key_discovered"]),
-            # door_discovered=int(subgoals["door_discovered"]),
-            # goal_discovered=int(subgoals["goal_discovered"]),
+            key_discovered=int(subgoals["key_discovered"]),
+            door_discovered=int(subgoals["door_discovered"]),
+            goal_discovered=int(subgoals["goal_discovered"]),
         )
 
         aggregated_metrics = utils.dict_sum(aggregated_metrics)
@@ -165,15 +166,12 @@ class MCGSAgent:
             "selection_time": (end_time - start_time),
             "selection_spent_budget": spent_budget,
         }
+
         return selected_node, spent_budget, metrics
 
     def expansion(self, node, env):
 
         start_time = time.perf_counter()
-
-        if node.done:
-            # if there are no nodes to expand other than a done node, return the root node as the start for the rollout
-            raise AssertionError("Node is done, should not be expanded")
 
         new_nodes = []
         actions_to_new_nodes = []
@@ -181,18 +179,16 @@ class MCGSAgent:
         spent_budget = 0
         merged_nodes = 0
 
-        # Nodes might not be leaves if the environment is fully stochastic, and the selection phase gets complicated
-        if node.is_leaf:
-            node.is_leaf = False
+        if self.graph.in_frontier(node):
             self.graph.remove_from_frontier(node)
 
         for action in range(self.env.action_space.n):
 
             expansion_env = env.copy()
-            state, reward, done, info = expansion_env.step(action)
+            state, reward, terminated, truncated, info = expansion_env.step(action)
             spent_budget += 1
             current_observation = expansion_env.get_observation()
-            child, reward = self.add_new_observation(current_observation, node, action, reward, done)
+            child, reward = self.add_new_observation(current_observation, node, action, reward, terminated, truncated)
             if child is not None:
                 new_nodes.append(child)
                 actions_to_new_nodes.append(action)
@@ -245,7 +241,7 @@ class MCGSAgent:
 
     def backpropagation(self, trajectory):
 
-        # Trajectory is a list of tuples (parent_obs, current_obs, action, reward, done)
+        # Trajectory is a list of tuples (parent_obs, current_obs, action, reward, terminated, truncated)
         non_obsolete_nodes = []
         total_rollout_reward = 0
 
@@ -289,28 +285,32 @@ class MCGSAgent:
         rollout_env = env.copy()
 
         previous_observation = rollout_env.get_observation()
-        state, reward, done, info = rollout_env.stochastic_step(action_to_node, action_failure_probabilities[0])
+        state, reward, terminated, truncated, info = rollout_env.stochastic_step(
+            action_to_node, action_failure_probabilities[0]
+        )
         observation = rollout_env.get_observation()
-        path.append((previous_observation, observation, action_to_node, reward, done))
+        path.append((previous_observation, observation, action_to_node, reward, terminated, truncated))
         spent_budget += 1
 
-        if done is False:
+        if terminated is False and truncated is False:
             previous_observation = rollout_env.get_observation()
             for idx, action in enumerate(action_list):
 
-                state, reward, done, info = rollout_env.stochastic_step(action, action_failure_probabilities[idx + 1])
+                state, reward, terminated, truncated, info = rollout_env.stochastic_step(
+                    action, action_failure_probabilities[idx + 1]
+                )
                 observation = rollout_env.get_observation()
                 spent_budget += 1
 
                 cumulative_reward += reward
-                path.append((previous_observation, observation, action, reward, done))
+                path.append((previous_observation, observation, action, reward, terminated, truncated))
                 previous_observation = observation
-                if done:
+                if terminated or truncated:
                     break
 
         return cumulative_reward, path, spent_budget
 
-    def add_new_observation(self, current_observation, parent_node, action, reward, done):
+    def add_new_observation(self, current_observation, parent_node, action, reward, terminated, truncated):
 
         new_node = None
         # Don't add the node if nothing has changed in the observation
@@ -322,7 +322,8 @@ class MCGSAgent:
                     observation=current_observation,
                     parent=parent_node,
                     is_leaf=True,
-                    done=done,
+                    terminated=terminated,
+                    truncated=truncated,
                     action=action,
                     value=0,
                     visits=0,
@@ -333,23 +334,12 @@ class MCGSAgent:
                 self.graph.add_node(child_node)
                 self.novelty.update_posterior(
                     child_node.observation,
-                    child_node.done,
+                    child_node.terminated,
                     self.graph.get_number_of_nodes(),
                     self.move_counter,
                     self.env.forward_model_calls,
                 )
                 new_node = child_node
-
-                for n in self.graph.get_all_nodes_info():
-                    if n.parent == -1:
-                        assert n.unreachable is True, "If I don't have a parent i'm unreachable"
-                    if n.unreachable is True:
-                        assert n.parent == -1 or n == self.root_node, "If I'm unreachable I don't have a parent"
-                    if n.unreachable is False:
-                        if n.parent is not None:
-                            assert (
-                                n.parent.unreachable is False or n.parent == self.root_node
-                            ), "ADD_NEW_OBS: If I'm reachable, my parent is reachable"
 
             else:
                 # enable for FMC optimisation, comment for full exploration
@@ -358,7 +348,7 @@ class MCGSAgent:
                     new_node = child_node
 
             if not self.graph.has_edge_by_observations(parent_node.observation, child_node.observation):
-                _ = self.add_edge(parent_node, child_node, action, reward, done)
+                self.add_edge(parent_node, child_node, action, reward, terminated, truncated)
 
         return new_node, reward
 
@@ -367,11 +357,8 @@ class MCGSAgent:
         start_time = time.perf_counter()
         novel_nodes_added = 0
         merge_counter = 0
-        # Trajectory is a list of tuples (parent_obs, current_obs, action, reward, done)
+        # Trajectory is a list of tuples (parent_obs, current_obs, action, reward, terminated, truncated)
         for trajectory in trajectories:
-
-            first_node = self.graph.get_node_info(trajectory[0][0])
-            assert first_node.unreachable is False or first_node == self.root_node, "First node should be reachable"
 
             for transition in trajectory:
 
@@ -379,7 +366,8 @@ class MCGSAgent:
                 observation = transition[1]
                 action = transition[2]
                 reward = transition[3]
-                done = transition[4]
+                terminated = transition[4]
+                truncated = transition[5]
 
                 parent_node = self.graph.get_node_info(parent_observation)
 
@@ -397,13 +385,11 @@ class MCGSAgent:
                         child_node.unreachable = False
 
                 # If the node is not in the graph, create it and add it to the graph
-                if not node_is_new and not edge_is_new:
-                    if child_node != self.root_node:
-                        assert child_node.unreachable is False, "If I'm not new, I should be reachable"
-
                 if node_is_new or edge_is_new:
                     if novelty_criteria:
-                        node, _ = self.add_new_observation(observation, parent_node, action, reward, done)
+                        node, _ = self.add_new_observation(
+                            observation, parent_node, action, reward, terminated, truncated
+                        )
                         if node is not None and node.novelty_value >= 1:
                             novel_nodes_added += 1
                 else:
@@ -429,7 +415,6 @@ class MCGSAgent:
 
         observation = env.get_observation()
         node = self.graph.get_node_info(observation)
-        assert node == self.root_node
 
         spent_budget = 0
         reached_destination = False
@@ -443,13 +428,15 @@ class MCGSAgent:
                 previous_observation = env.get_observation()
                 parent_node = self.graph.get_node_info(previous_observation)
 
-                state, reward, done, info = env.step(action)
+                state, reward, terminated, truncated, info = env.stochastic_step(action)
                 spent_budget += 1
                 current_observation = env.get_observation()
 
                 # If the observation is not in the graph, add it. (happens in stochastic environments)
                 if not self.graph.has_node(current_observation):
-                    self.add_new_observation(current_observation, parent_node, action, reward, done)  # TODO:
+                    self.add_new_observation(
+                        current_observation, parent_node, action, reward, terminated, truncated
+                    )  # TODO:
 
                 elif not self.graph.has_edge_by_observations(parent_node.observation, current_observation):
                     self.add_edge(
@@ -457,7 +444,8 @@ class MCGSAgent:
                         child_node=self.graph.get_node_info(current_observation),
                         action=action,
                         reward=reward,
-                        done=done,
+                        terminated=terminated,
+                        truncated=truncated,
                     )
 
                 # if the observation has changed, we need to update the path (happens in stochastic environments)
@@ -471,15 +459,16 @@ class MCGSAgent:
 
         return self.graph.get_node_info(current_observation), spent_budget
 
-    def add_edge(self, parent_node, child_node, action, reward, done):
+    def add_edge(self, parent_node, child_node, action, reward, terminated, truncated):
 
         edge = Edge(
-            id=self.edge_counter,
+            edge_id=self.edge_counter,
             node_from=parent_node,
             node_to=child_node,
             action=action,
             reward=reward,
-            done=done,
+            terminated=terminated,
+            truncated=truncated,
         )
 
         if not self.graph.has_edge(edge):
@@ -491,8 +480,6 @@ class MCGSAgent:
                 child_node.set_parent(parent_node)
                 child_node.action = action
                 child_node.unreachable = False
-            elif child_node == self.root_node:
-                print("Going back into the root node")
 
         return edge
 
@@ -529,10 +516,6 @@ class MCGSAgent:
 
         if best_node is None:  # if there is no reachable node, use root (6 - no action)
             return self.root_node, 6
-
-        if best_node.done is True:
-            pass
-            # Log metrics that the goal has been found
 
         while best_node.parent != self.root_node:  # get to the first child of root
             best_node = best_node.parent

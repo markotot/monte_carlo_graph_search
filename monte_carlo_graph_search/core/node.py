@@ -1,12 +1,15 @@
 class Node:
-    def __init__(self, observation, parent, is_leaf, action, value, done, visits, novelty_value, config):
+    def __init__(
+        self, observation, parent, is_leaf, action, value, terminated, truncated, visits, novelty_value, config
+    ):
 
         self.observation = observation
         self.parent = parent
         self.is_leaf = is_leaf
         self.action = action
         self.total_value = value
-        self.done = done
+        self.terminated = terminated
+        self.truncated = truncated
         self.visits = visits
 
         self.novelty_value = novelty_value

@@ -3,17 +3,17 @@ from omegaconf import DictConfig
 
 from monte_carlo_graph_search.agents.mcgs_agent import MCGSAgent
 from monte_carlo_graph_search.core.logger import NeptuneLogger
-from monte_carlo_graph_search.environment.griddly.clusters_env import ClustersEnv
-from monte_carlo_graph_search.environment.griddly.clusters_novelty import (
-    ClustersNovelty,
-)
 
-# from monte_carlo_graph_search.environment.minigrid.custom_minigrid_env import (
-#     CustomMinigridEnv,
+# from monte_carlo_graph_search.environment.griddly.clusters_env import ClustersEnv
+# from monte_carlo_graph_search.environment.griddly.clusters_novelty import (
+#     ClustersNovelty,
 # )
-# from monte_carlo_graph_search.environment.minigrid.minigrid_novelty import (
-#     MinigridNovelty,
-# )
+from monte_carlo_graph_search.environment.minigrid.custom_minigrid_env import (
+    CustomMinigridEnv,
+)
+from monte_carlo_graph_search.environment.minigrid.minigrid_novelty import (
+    MinigridNovelty,
+)
 from monte_carlo_graph_search.utils import utils
 from monte_carlo_graph_search.utils.plotting import plot_images
 
@@ -23,28 +23,28 @@ def run_app(config: DictConfig) -> None:
 
     logger = NeptuneLogger(config=config, name="MCGS")
 
-    # env = CustomMinigridEnv(env_config=config.env)
-    # novelty = MinigridNovelty(config=config.novelty)
-    env = ClustersEnv(env_config=config.env)
-    novelty = ClustersNovelty(config=config.novelty)
+    env = CustomMinigridEnv(env_config=config.env)
+    novelty = MinigridNovelty(config=config.novelty)
+    # env = ClustersEnv(env_config=config.env)
+    # novelty = ClustersNovelty(config=config.novelty)
     agent = MCGSAgent(env=env, novelty=novelty, logger=logger, config=config)
 
     image = env.render()
+
     images = [image]
     logger.upload_image("images/initial_state", image)
 
     total_reward = 0
     for _ in range(config.search.max_moves):
         action = agent.plan()
-        state, reward, done, info = agent.act(action)
+        state, reward, terminated, truncated, info = agent.act(action)
         image = env.render()
         images.append(image)
         total_reward += reward
-        print("Action:", action)
-        if done:
+        if terminated or truncated:
             break
 
-        # agent.graph.draw_graph()
+        agent.graph.draw_graph()
 
     combined_images = plot_images(
         f"env seed: {config.env.seed}   agent seed: {config.search.seed}",
@@ -54,7 +54,7 @@ def run_app(config: DictConfig) -> None:
     )
     logger.upload_image("images/combined_images", combined_images)
 
-    metrics = agent.get_final_metrics(done)
+    metrics = agent.get_final_metrics(terminated or truncated)
     logger.write(metrics, agent.move_counter)
 
     utils.add_to_experiment_file(f"../experiment_runs/{config.run_name}.txt", logger.get_id())
