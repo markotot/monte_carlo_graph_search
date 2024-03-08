@@ -63,33 +63,10 @@ class MCGSAgent:
 
         while remaining_budget > 0:
 
-            assert self.root_node.parent is None, "Root node should not have a parent"
-
-            for n in self.graph.get_all_nodes_info():
-                if n.parent == -1:
-                    assert n.unreachable is True, "If I don't have a parent i'm unreachable"
-                if n.unreachable is True:
-                    assert n.parent == -1 or n == self.root_node, "If I'm unreachable I don't have a parent"
-                if n.unreachable is False:
-                    if n.parent is not None:
-                        assert (
-                            n.parent.unreachable is False or n.parent == self.root_node
-                        ), "START: If I'm reachable, my parent is reachable"
             # Selection
             selection_env = self.env.copy()
             node, selection_budget, selection_metrics = self.selection(selection_env)
             utils.update_metrics(aggregated_metrics, selection_metrics)
-
-            for n in self.graph.get_all_nodes_info():
-                if n.parent == -1:
-                    assert n.unreachable is True, "If I don't have a parent i'm unreachable"
-                if n.unreachable is True:
-                    assert n.parent == -1 or n == self.root_node, "If I'm unreachable I don't have a parent"
-                if n.unreachable is False:
-                    if n.parent is not None:
-                        assert (
-                            n.parent.unreachable is False or n.parent == self.root_node
-                        ), "SELECTION: If I'm reachable, my parent is reachable"
 
             # Expansion - This could be modified to allow single child expansion
             if node is None:
@@ -100,17 +77,6 @@ class MCGSAgent:
             if len(children) == 0:
                 print("No children")
                 break
-
-            for n in self.graph.get_all_nodes_info():
-                if n.parent == -1:
-                    assert n.unreachable is True, "If I don't have a parent i'm unreachable"
-                if n.unreachable is True:
-                    assert n.parent == -1 or n == self.root_node, "If I'm unreachable I don't have a parent"
-                if n.unreachable is False:
-                    if n.parent is not None:
-                        assert (
-                            n.parent.unreachable is False or n.parent == self.root_node
-                        ), "EXPANSION: If I'm reachable, my parent is reachable"
 
             # Rollouts
             total_simulation_budget = 0
@@ -126,16 +92,6 @@ class MCGSAgent:
                     storing_nodes_metrics = self.add_stored_nodes(trajectories)
                     utils.update_metrics(aggregated_metrics, storing_nodes_metrics)
 
-                for n in self.graph.get_all_nodes_info():
-                    if n.parent == -1:
-                        assert n.unreachable is True, "If I don't have a parent i'm unreachable"
-                    if n.unreachable is True:
-                        assert n.parent == -1 or n == self.root_node, "If I'm unreachable I don't have a parent"
-                    if n.unreachable is False:
-                        if n.parent is not None:
-                            assert (
-                                n.parent.unreachable is False or n.parent == self.root_node
-                            ), "STORING NODES: If I'm reachable, my parent is reachable"
                 # Backpropagation
                 if self.config.use_backpropagation:
                     start_backprop_time = time.perf_counter()
