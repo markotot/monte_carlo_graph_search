@@ -19,12 +19,16 @@ class NeptuneLogger:
     def write(self, data, timestep):
         for key, value in data.items():
             if not np.isnan(value):
-                self.run[key].log(value, step=timestep)
+                self.run[f"metrics/{key}"].log(value, step=timestep)
 
     def upload_data_frame(self, output_path, data_frame):
 
         file = File.as_html(data_frame)
         self.run[output_path].upload(file)
+
+    def upload_image(self, output_path, image):
+        image = File.as_image(image / 255.0)
+        self.run[output_path].upload(image)
 
     def upload_config(self, output_path, data):
         self.run[output_path] = data
@@ -45,7 +49,3 @@ class NeptuneLogger:
 
     def get_id(self):
         return self.run["sys/id"].fetch()
-
-    def add_to_experiment_file(self, file_path):
-        with open(file_path, "a+") as f:
-            f.write(f"{self.get_id()}\n")

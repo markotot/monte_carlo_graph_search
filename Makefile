@@ -7,7 +7,7 @@ APOCRITA_USER = acw549
 
 #EXPERIMENT CONFIG
 START_SEED = 1
-END_SEED = 100
+END_SEED = 10
 RUN_NAME = "MCGS"
 
 # Used to login to apocrita server
@@ -55,7 +55,3 @@ apocrita_clean_runs:
 	sudo expect ./scripts/apocrita_clean.sh \
  	${APOCRITA_USER} ${APOCRITA_PASSPHRASE} ${APOCRITA_USER_PASSWORD} ${AP_PRIVATE_KEY_PATH} \
  	${GIT_BRANCH} ${PROJECT_NAME}
-
-.PHONY: test
-test:
-	echo "git clone -b ${GIT_BRANCH} https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/markotot/${PROJECT_NAME}.git"

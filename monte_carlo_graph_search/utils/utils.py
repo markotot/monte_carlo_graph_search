@@ -25,3 +25,8 @@ def add_time_percentages(dictionary, total_time_value):
             metrics[key_name] = value / total_time_value * 100
     dictionary.update(metrics)
     return dictionary
+
+
+def add_to_experiment_file(file_path, run_id):
+    with open(file_path, "a+") as f:
+        f.write(f"{run_id}\n")

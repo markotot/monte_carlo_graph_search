@@ -1,11 +1,11 @@
 class Node:
-    def __init__(self, id, parent, is_leaf, action, reward, done, visits, novelty_value, config):
+    def __init__(self, observation, parent, is_leaf, action, value, done, visits, novelty_value, config):
 
-        self.id = id
+        self.observation = observation
         self.parent = parent
         self.is_leaf = is_leaf
         self.action = action
-        self.total_value = reward
+        self.total_value = value
         self.done = done
         self.visits = visits
 
@@ -18,10 +18,10 @@ class Node:
 
     def uct_value(self):
         # c = 0.0
-        ucb = 0  # c * sqrt(log(self.parent.visits + 1) / self.visits)
-        return self.value() + ucb
+        ucb = 0  # + c * sqrt(log(self.parent.visits + 1) / self.visits)
+        return self.get_value() + ucb
 
-    def value(self):
+    def get_value(self):
         if self.visits == 0:
             return 0
         else:
@@ -30,13 +30,16 @@ class Node:
     def trajectory_from_root(self):
 
         action_trajectory = []
+        observation_trajectory = []
         current_node = self
 
         while current_node.parent is not None:
+            observation_trajectory.insert(0, current_node.observation)
             action_trajectory.insert(0, current_node.action)
             current_node = current_node.parent
 
-        return action_trajectory
+        observation_trajectory.insert(0, current_node.observation)
+        return observation_trajectory, action_trajectory
 
     def reroute(self, path, actions):
         parent_order = list(reversed(path))
@@ -54,4 +57,4 @@ class Node:
         self.parent = parent
 
     def __hash__(self):
-        return hash(self.id)
+        return hash(self.observation)

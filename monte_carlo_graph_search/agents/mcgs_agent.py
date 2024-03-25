@@ -28,21 +28,21 @@ class MCGSAgent:
 
         observation = self.env.get_observation()
         self.root_node = Node(
-            id=observation,
+            observation=observation,
             parent=None,
             is_leaf=True,
             done=False,
             action=None,
-            reward=0,
+            value=0,
             visits=0,
-            novelty_value=self.novelty.calculate_novelty(observation),
+            novelty_value=0,
             config=config,
         )
         self.root_node.chosen = True
 
         self.graph.add_node(self.root_node)
         self.novelty.update_posterior(
-            self.root_node.id,
+            self.root_node.observation,
             self.root_node.done,
             self.graph.get_number_of_nodes(),
             self.move_counter,
@@ -88,7 +88,7 @@ class MCGSAgent:
 
                 # Storing rollouts
                 if self.config.stored_rollouts.use_stored_rollouts:
-                    storing_nodes_metrics = self.add_novelties_to_graph(trajectories)
+                    storing_nodes_metrics = self.add_stored_nodes(trajectories)
                     utils.update_metrics(aggregated_metrics, storing_nodes_metrics)
 
                 # Backpropagation
@@ -120,6 +120,7 @@ class MCGSAgent:
         aggregated_metrics.update(self.graph.get_metrics())
         aggregated_metrics.update(
             moves=self.move_counter,
+            action=action,
             total_fmc=self.env.forward_model_calls,
             total_num_simulations=self.num_simulations,
             iterations_per_move=iterations,
@@ -153,10 +154,13 @@ class MCGSAgent:
         if node is None:  # If no frontier node was found, select the root node
             return self.root_node, 0, {}
 
+        start_go_to_node = time.perf_counter()
         selected_node, spent_budget = self.go_to_node(node, env)
+        end_got_to_node = time.perf_counter()
 
         end_time = time.perf_counter()
         metrics = {
+            "go_to_node_time": (end_got_to_node - start_go_to_node),
             "selection_time": (end_time - start_time),
             "selection_spent_budget": spent_budget,
         }
@@ -172,9 +176,10 @@ class MCGSAgent:
         actions_to_new_nodes = []
 
         spent_budget = 0
-        if (
-            node.is_leaf
-        ):  # Nodes might not be leaves if the environment is fully stochastic, and the selection phase gets complicated
+        merged_nodes = 0
+
+        # Nodes might not be leaves if the environment is fully stochastic, and the selection phase gets complicated
+        if node.is_leaf:
             node.is_leaf = False
             self.graph.remove_from_frontier(node)
 
@@ -189,9 +194,11 @@ class MCGSAgent:
             if child is not None:
                 new_nodes.append(child)
                 actions_to_new_nodes.append(action)
-
+            else:
+                merged_nodes += 1
         end_time = time.perf_counter()
         metrics = {
+            "expansion_merge": merged_nodes,
             "expansion_time": (end_time - start_time),
             "expansion_spent_budget": spent_budget,
         }
@@ -261,8 +268,8 @@ class MCGSAgent:
         i = 1  # backprop discount factor
         nodes_updated = []
         for node in node_list:
-            if node.id not in nodes_updated:
-                nodes_updated.append(node.id)
+            if node.observation not in nodes_updated:
+                nodes_updated.append(node.observation)
                 node.visits += 1
                 node.total_value += total_rollout_reward * np.power(self.config.search.discount_factor, i)
                 i += 1
@@ -300,25 +307,27 @@ class MCGSAgent:
 
         new_node = None
 
-        if current_observation != parent_node.id:  # Don't add the node if nothing has changed in the observation
+        if (
+            current_observation != parent_node.observation
+        ):  # Don't add the node if nothing has changed in the observation
             if not self.graph.has_node(
                 current_observation
             ):  # If the node is not in the graph, create it and add it to the graph
 
                 child_node = Node(
-                    id=current_observation,
+                    observation=current_observation,
                     parent=parent_node,
                     is_leaf=True,
                     done=done,
                     action=action,
-                    reward=reward,
+                    value=0,
                     visits=0,
                     novelty_value=self.novelty.calculate_novelty(current_observation),
                     config=self.config,
                 )
                 self.graph.add_node(child_node)
                 self.novelty.update_posterior(
-                    child_node.id,
+                    child_node.observation,
                     child_node.done,
                     self.graph.get_number_of_nodes(),
                     self.move_counter,
@@ -331,15 +340,16 @@ class MCGSAgent:
                 if child_node.is_leaf:
                     new_node = child_node
 
-            if not self.graph.has_edge_by_nodes(parent_node, child_node):
+            if not self.graph.has_edge_by_observations(parent_node.observation, child_node.observation):
                 _ = self.add_edge(parent_node, child_node, action, reward, done)
 
         return new_node, reward
 
-    def add_novelties_to_graph(self, trajectories):
+    def add_stored_nodes(self, trajectories):
 
         start_time = time.perf_counter()
         novel_nodes_added = 0
+        merge_counter = 0
         # Trajectory is a list of tuples (parent_obs, current_obs, action, reward, done)
         for trajectory in trajectories:
 
@@ -354,18 +364,20 @@ class MCGSAgent:
                 novelty = self.novelty.calculate_novelty(observation)
 
                 node_is_new = self.graph.has_node(observation) is False
-                edge_is_new = self.graph.has_edge_by_nodes(parent_observation, observation) is False
+                edge_is_new = self.graph.has_edge_by_observations(parent_observation, observation) is False
                 novelty_criteria = novelty > 0 or self.config.stored_rollouts.only_store_novel_nodes is False
-                if (node_is_new or edge_is_new) and novelty_criteria:
-
-                    parent_node = self.graph.get_node_info(parent_observation)
-                    node, _ = self.add_new_observation(observation, parent_node, action, reward, done)
-
-                    if node is not None and node.novelty_value >= 1:
-                        novel_nodes_added += 1
+                if node_is_new or edge_is_new:
+                    if novelty_criteria:
+                        parent_node = self.graph.get_node_info(parent_observation)
+                        node, _ = self.add_new_observation(observation, parent_node, action, reward, done)
+                        if node is not None and node.novelty_value >= 1:
+                            novel_nodes_added += 1
+                else:
+                    merge_counter += 1
 
         end_time = time.perf_counter()
         metrics = {
+            "rollout_merged_nodes": merge_counter,
             "storing_nodes_time": (end_time - start_time),
             "novel_nodes_added": novel_nodes_added,
         }
@@ -383,24 +395,29 @@ class MCGSAgent:
 
         observation = env.get_observation()
         node = self.graph.get_node_info(observation)
-        spent_budget = 0
+        assert node == self.root_node
 
+        spent_budget = 0
         reached_destination = False
+
         while self.graph.has_path(node, destination_node) and not reached_destination:
+
             observations, actions = self.graph.get_path(node, destination_node)
-            for idx, action in enumerate(actions):  # For each action in the path, do one step in the environment
+
+            # For each action in the path, do one step in the environment
+            for idx, action in enumerate(actions):
                 previous_observation = env.get_observation()
                 parent_node = self.graph.get_node_info(previous_observation)
 
                 state, reward, done, info = env.step(action)
                 spent_budget += 1
-
                 current_observation = env.get_observation()
-                # If we get a new observation (can happen in fully stochastic envs)
+
+                # If the observation is not in the graph, add it. (happens in stochastic environments)
                 if not self.graph.has_node(current_observation):
                     self.add_new_observation(current_observation, parent_node, action, reward, done)  # TODO:
 
-                elif not self.graph.has_edge_by_nodes(parent_node, self.graph.get_node_info(current_observation)):
+                elif not self.graph.has_edge_by_observations(parent_node.observation, current_observation):
                     self.add_edge(
                         parent_node=parent_node,
                         child_node=self.graph.get_node_info(current_observation),
@@ -409,11 +426,12 @@ class MCGSAgent:
                         done=done,
                     )
 
+                # if the observation has changed, we need to update the path (happens in stochastic environments)
                 if observations[idx + 1] != current_observation:
                     node = self.graph.get_node_info(current_observation)
                     break
 
-                if destination_node.id == current_observation:
+                if destination_node.observation == current_observation:
                     reached_destination = True
                     break
 
@@ -434,11 +452,11 @@ class MCGSAgent:
             self.graph.add_edge(edge)
             self.edge_counter += 1
 
-        # If child was unreachable make it reachable again and update its parent
-        if child_node.unreachable is True and child_node != self.root_node:
-            child_node.set_parent(parent_node)
-            child_node.actions = action
-            child_node.unreachable = False
+            # If child was unreachable make it reachable again and update its parent
+            if child_node.unreachable is True and child_node != self.root_node:
+                child_node.set_parent(parent_node)
+                child_node.action = action
+                child_node.unreachable = False
 
         return edge
 
@@ -457,10 +475,12 @@ class MCGSAgent:
         self.root_node.parent = None
 
         # If we changed root, reroute old root to new route
-        if self.root_node.id != old_root_node.id:
+        if self.root_node.observation != old_root_node.observation:
             if self.graph.has_path(self.root_node, old_root_node):
                 self.graph.reroute_path(self.root_node, old_root_node)
                 old_root_node.action = self.graph.get_edge_info(old_root_node.parent, old_root_node).action
+            else:
+                old_root_node.unreachable = True
 
     def select_best_move(self, node, closest=False):
 

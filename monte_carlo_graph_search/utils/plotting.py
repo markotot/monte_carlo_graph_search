@@ -4,8 +4,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_images(seed_text, images, reward):
+def pad_images(images: np.ndarray, top=0, bottom=0, left=0, right=0, constant=0) -> np.ndarray:
+    assert len(images.shape) == 4, "not a batch of images!"
+    return np.pad(images, ((0, 0), (top, bottom), (left, right), (0, 0)), mode="constant", constant_values=constant)
+
+
+def plot_images(seed_text, images, reward, save_to_neptune):
     image_len = len(images)
+
     empty = np.array(images[0].copy())
     empty.fill(0)
 
@@ -19,17 +25,21 @@ def plot_images(seed_text, images, reward):
 
     images.extend(((cols * rows) - image_len) * [empty])
 
+    padded_images = pad_images(np.array(images), top=3, bottom=3, left=3, right=3)
     image_rows = []
     for i in range(rows):
-
-        image_slice = images[i * cols : (i + 1) * cols]
+        image_slice = padded_images[i * cols : (i + 1) * cols]
         image_row = np.concatenate(image_slice, 1)
         image_rows.append(image_row)
 
     plt.axis("off")
     plt.title(f"{seed_text}   steps: {image_len - 1}   reward: {round(reward, 2)}")
 
-    plt.imshow(np.concatenate(image_rows, 0))
-    # plt.savefig(f"{Logger.directory_path + str(number)}.png", dpi=384)
+    image = np.concatenate(image_rows, 0)
 
-    plt.show()
+    if save_to_neptune:
+        return image
+    else:
+        plt.imshow(image)
+        plt.show()
+        return None
