@@ -88,16 +88,15 @@ class MCGSAgent:
 
                 # Storing rollouts
                 if self.config.stored_rollouts.use_stored_rollouts:
-                    rollout_nodes, rewards, storing_nodes_metrics = self.add_novelties_to_graph(trajectories)
+                    storing_nodes_metrics = self.add_novelties_to_graph(trajectories)
                     utils.update_metrics(aggregated_metrics, storing_nodes_metrics)
 
                 # Backpropagation
                 if self.config.use_backpropagation:
                     start_backprop_time = time.perf_counter()
                     if self.config.stored_rollouts.use_stored_rollouts:
-                        for i, node in enumerate(rollout_nodes):
-                            self.backpropagation(node, rewards[i])
-                    self.backpropagation(children[idx], child_average_reward)
+                        for trajectory in trajectories:
+                            self.backpropagation(trajectory)
                     end_backprop_time = time.perf_counter()
                     backprop_metrics = {"backpropagation_time": (end_backprop_time - start_backprop_time)}
                     utils.update_metrics(aggregated_metrics, backprop_metrics)
@@ -235,15 +234,38 @@ class MCGSAgent:
 
         return np.mean(rewards), trajectories, spent_budget_simulation, metrics
 
-    def backpropagation(
-        self, node, reward
-    ):  # This is the simple version when only the optimal path to the root is updated
-        i = 1  # discount factor
+    def backpropagation(self, trajectory):
+
+        # Trajectory is a list of tuples (parent_obs, current_obs, action, reward, done)
+        non_obsolete_nodes = []
+        total_rollout_reward = 0
+
+        # filters obsolete actions
+        for transition in trajectory:
+            observation = transition[0]
+            parent_observation = transition[1]
+            reward = transition[3]
+            if not (observation == parent_observation and reward == 0):
+                non_obsolete_nodes.append(self.graph.get_node_info(transition[0]))
+                total_rollout_reward += reward
+
+        # creates a list of rolled out nodes from last to first
+        node_list = list(reversed(non_obsolete_nodes))
+
+        # adds a list of nodes to the root from the last node (before rollout) to the root
+        node = self.graph.get_node_info(trajectory[0][0])
         while node is not None:
-            node.visits += 1
-            node.total_value += reward * np.power(self.config.search.discount_factor, i)
+            node_list.append(node)
             node = node.parent
-            i += 1
+
+        i = 1  # backprop discount factor
+        nodes_updated = []
+        for node in node_list:
+            if node.id not in nodes_updated:
+                nodes_updated.append(node.id)
+                node.visits += 1
+                node.total_value += total_rollout_reward * np.power(self.config.search.discount_factor, i)
+                i += 1
 
     def rollout(self, action_to_node, env, action_list, action_failure_probabilities):
 
@@ -315,35 +337,31 @@ class MCGSAgent:
         return new_node, reward
 
     def add_novelties_to_graph(self, trajectories):
-        # TODO: rework this logic
 
         start_time = time.perf_counter()
-        nodes = []
-        node_rewards = []
         novel_nodes_added = 0
+        # Trajectory is a list of tuples (parent_obs, current_obs, action, reward, done)
         for trajectory in trajectories:
-            for idx, step in enumerate(trajectory):
 
-                observation = step[1]
+            for transition in trajectory:
+
+                parent_observation = transition[0]
+                observation = transition[1]
+                action = transition[2]
+                reward = transition[3]
+                done = transition[4]
+
                 novelty = self.novelty.calculate_novelty(observation)
-                if (not self.graph.has_node(observation)) and (
-                    novelty > 0 or self.config.stored_rollouts.only_store_novel_nodes is False
-                ):
 
-                    for i in range(idx + 1):
-                        transition = trajectory[i]
-                        previous_obs = transition[0]
-                        current_obs = transition[1]
-                        action = transition[2]
-                        reward = transition[3]
-                        done = transition[4]
+                node_is_new = self.graph.has_node(observation) is False
+                edge_is_new = self.graph.has_edge_by_nodes(parent_observation, observation) is False
+                novelty_criteria = novelty > 0 or self.config.stored_rollouts.only_store_novel_nodes is False
+                if (node_is_new or edge_is_new) and novelty_criteria:
 
-                        parent_node = self.graph.get_node_info(previous_obs)
-                        node, node_reward = self.add_new_observation(current_obs, parent_node, action, reward, done)
-                        # if node is not None:
-                        #     nodes.append(node)
-                        #     node_rewards.append(node_reward)
-                    if node.novelty_value >= 1:
+                    parent_node = self.graph.get_node_info(parent_observation)
+                    node, _ = self.add_new_observation(observation, parent_node, action, reward, done)
+
+                    if node is not None and node.novelty_value >= 1:
                         novel_nodes_added += 1
 
         end_time = time.perf_counter()
@@ -351,7 +369,7 @@ class MCGSAgent:
             "storing_nodes_time": (end_time - start_time),
             "novel_nodes_added": novel_nodes_added,
         }
-        return nodes, node_rewards, metrics
+        return metrics
 
     def maintain_graph(self):
         start_time = time.perf_counter()
