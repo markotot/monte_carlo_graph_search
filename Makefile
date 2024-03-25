@@ -1,4 +1,4 @@
-GIT_BRANCH = main
+GIT_BRANCH = minigrid_branch
 PROJECT_NAME = monte_carlo_graph_search
 
 #APOCRITA
