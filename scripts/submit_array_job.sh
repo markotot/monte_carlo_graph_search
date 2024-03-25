@@ -1,7 +1,7 @@
 #!/bin/bash
 #$ -pe smp 1
 #$ -l h_vmem=1G
-#$ -l h_rt=5:0:0
+#$ -l h_rt=1:0:0
 #$ -cwd
 #$ -j y
 #$ -o job_results
