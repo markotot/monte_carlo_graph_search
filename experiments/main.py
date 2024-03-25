@@ -7,7 +7,8 @@ from monte_carlo_graph_search.environment.minigrid.custom_minigrid_env import (
     CustomMinigridEnv,
 )
 from monte_carlo_graph_search.utils import utils
-from monte_carlo_graph_search.utils.plotting import plot_images
+
+# from monte_carlo_graph_search.utils.plotting import plot_images
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="mcgs")
@@ -21,12 +22,10 @@ def run_app(config: DictConfig) -> None:
     image = env.render()
     images = [image]
     logger.upload_image("images/initial_state", image)
-
     total_reward = 0
-    for n in range(config.search.max_moves):
+    for _ in range(config.search.max_moves):
         action = agent.plan()
         state, reward, done, info = agent.act(action)
-        print(f"Step {n} done!")
         image = env.render()
         images.append(image)
         total_reward += reward
@@ -34,16 +33,14 @@ def run_app(config: DictConfig) -> None:
             break
 
         # agent.graph.draw_graph()
-    print("Search done, combining images")
-    combined_images = plot_images(
-        f"env seed: {config.env.seed}   agent seed: {config.search.seed}",
-        images,
-        total_reward,
-        save_to_neptune=True,
-    )
-    logger.upload_image("images/combined_images", combined_images)
+    # combined_images = plot_images(
+    #     f"env seed: {config.env.seed}   agent seed: {config.search.seed}",
+    #     images,
+    #     total_reward,
+    #     save_to_neptune=True,
+    # )
+    # logger.upload_image("images/combined_images", combined_images)
 
-    print("Image uploaded, logging final metrics")
     metrics = agent.get_final_metrics(done)
     logger.write(metrics, agent.move_counter)
 

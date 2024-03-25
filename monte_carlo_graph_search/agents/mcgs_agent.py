@@ -62,7 +62,6 @@ class MCGSAgent:
 
         remaining_budget = self.config.search.budget_per_move
         iterations = 0
-
         while remaining_budget > 0:
 
             # Selection
