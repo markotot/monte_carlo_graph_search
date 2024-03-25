@@ -252,7 +252,11 @@ class MCGSAgent:
         cumulative_reward = 0
 
         rollout_env = copy.deepcopy(env)
-        rollout_env.stochastic_step(action_to_node, action_failure_probabilities[0])
+
+        previous_observation = rollout_env.get_observation()
+        state, reward, done, info = rollout_env.stochastic_step(action_to_node, action_failure_probabilities[0])
+        observation = rollout_env.get_observation()
+        path.append((previous_observation, observation, action_to_node, reward, done))
         spent_budget += 1
 
         previous_observation = rollout_env.get_observation()
@@ -279,7 +283,7 @@ class MCGSAgent:
                 current_observation
             ):  # If the node is not in the graph, create it and add it to the graph
 
-                child = Node(
+                child_node = Node(
                     id=current_observation,
                     parent=parent_node,
                     is_leaf=True,
@@ -290,22 +294,23 @@ class MCGSAgent:
                     novelty_value=self.novelty.calculate_novelty(current_observation),
                     config=self.config,
                 )
-                self.graph.add_node(child)
+                self.graph.add_node(child_node)
                 self.novelty.update_posterior(
-                    child.id,
-                    child.done,
+                    child_node.id,
+                    child_node.done,
                     self.graph.get_number_of_nodes(),
                     self.move_counter,
                     self.env.forward_model_calls,
                 )
-                new_node = child
+                new_node = child_node
             else:
                 # enable for FMC optimisation, comment for full exploration
-                child = self.graph.get_node_info(current_observation)  # TODO: why is this here?
-                if child.is_leaf:
-                    new_node = child
+                child_node = self.graph.get_node_info(current_observation)  # TODO: why is this here?
+                if child_node.is_leaf:
+                    new_node = child_node
 
-            _ = self.add_edge(parent_node, child, action, reward, done)
+            if not self.graph.has_edge_by_nodes(parent_node, child_node):
+                _ = self.add_edge(parent_node, child_node, action, reward, done)
 
         return new_node, reward
 
