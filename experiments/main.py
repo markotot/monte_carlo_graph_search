@@ -33,7 +33,7 @@ def run_app(config: DictConfig) -> None:
             break
 
         # agent.graph.draw_graph()
-
+    print("Search done, combining images")
     combined_images = plot_images(
         f"env seed: {config.env.seed}   agent seed: {config.search.seed}",
         images,
@@ -42,6 +42,7 @@ def run_app(config: DictConfig) -> None:
     )
     logger.upload_image("images/combined_images", combined_images)
 
+    print("Image uploaded, logging final metrics")
     metrics = agent.get_final_metrics(done)
     logger.write(metrics, agent.move_counter)
 
