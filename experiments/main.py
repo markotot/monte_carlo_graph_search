@@ -23,9 +23,10 @@ def run_app(config: DictConfig) -> None:
     logger.upload_image("images/initial_state", image)
 
     total_reward = 0
-    for _ in range(config.search.max_moves):
+    for n in range(config.search.max_moves):
         action = agent.plan()
         state, reward, done, info = agent.act(action)
+        print(f"Step {n} done!")
         image = env.render()
         images.append(image)
         total_reward += reward
