@@ -16,7 +16,7 @@ set RUN_NAME [lindex $argv 9];
 
 spawn ssh -i $APOC_PRIVATE_KEY $APOC_USERNAME@login.hpc.qmul.ac.uk \
  "
- rm jobs_results/*; \
+ rm job_results/*; \
  rm experiment_runs/*; \
  "
 expect "Enter passphrase for key '$APOC_PRIVATE_KEY':"

@@ -58,6 +58,6 @@ test:
 
 .SILENT: apocrita_clean_runs
 apocrita_clean_runs:
-	sudo expect ./scripts/apocrita_clean.sh \
+	sudo expect ./scripts/apocrita_clean_runs.sh \
  	${APOCRITA_USER} ${APOCRITA_PASSPHRASE} ${APOCRITA_USER_PASSWORD} ${AP_PRIVATE_KEY_PATH} \
  	${GIT_BRANCH} ${PROJECT_NAME}
