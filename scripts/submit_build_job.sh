@@ -10,4 +10,4 @@ module load python/3.8.5
 
 # Replace the following line with a program or command
 APPTAINERENV_NSLOTS=${NSLOTS}
-apptainer build --force containers/pure_mcgs.sif $PROJECT_NAME/apptainer/mcgs.def;
+apptainer build --force containers/mcgs.sif $PROJECT_NAME/apptainer/mcgs.def;
