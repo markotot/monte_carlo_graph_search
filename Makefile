@@ -50,12 +50,6 @@ apocrita_run:
  	${APOCRITA_USER} ${APOCRITA_PASSPHRASE} ${APOCRITA_USER_PASSWORD} ${AP_PRIVATE_KEY_PATH} \
  	${GIT_BRANCH} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN} ${START_SEED} ${END_SEED} ${RUN_NAME}
 
-.SILENT: test
-test:
-	sudo expect ./scripts/apocrita_run_new.sh \
- 	${APOCRITA_USER} ${APOCRITA_PASSPHRASE} ${APOCRITA_USER_PASSWORD} ${AP_PRIVATE_KEY_PATH} \
- 	${GIT_BRANCH} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN} ${START_SEED} ${END_SEED} ${RUN_NAME}
-
 .SILENT: apocrita_clean_runs
 apocrita_clean_runs:
 	sudo expect ./scripts/apocrita_clean_runs.sh \
