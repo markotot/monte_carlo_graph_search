@@ -13,14 +13,11 @@ From: python:3.8
     cd monte_carlo_graph_search
 
     if [ $JOB_TYPE = "pull_git" ]; then
-        echo "Pulling git repo"
         git pull
         git checkout $GIT_BRANCH
         git pull
     elif [ $JOB_TYPE = "run_experiment" ]; then
-        echo "Running experiment"
         bash scripts/launch_exp.sh $RUN_NAME $SEED
     elif [ $JOB_TYPE = "run_aggregate" ]; then
-        echo "Aggregating data"
         bash scripts/launch_aggregate_data.sh $RUN_NAME $START_ID $END_ID
     fi
