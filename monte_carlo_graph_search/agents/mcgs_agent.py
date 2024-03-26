@@ -63,7 +63,6 @@ class MCGSAgent:
         remaining_budget = self.config.search.budget_per_move
         iterations = 0
         while remaining_budget > 0:
-
             # Selection
             selection_env = copy.deepcopy(self.env)
             node, selection_budget, selection_metrics = self.selection(selection_env)
@@ -260,9 +259,14 @@ class MCGSAgent:
 
         # adds a list of nodes to the root from the last node (before rollout) to the root
         node = self.graph.get_node_info(trajectory[0][0])
+
+        n = 0
         while node is not None:
+            n += 1
             node_list.append(node)
             node = node.parent
+            if n > 100:
+                print("Should not happen")
 
         i = 1  # backprop discount factor
         nodes_updated = []
