@@ -84,6 +84,10 @@ class MCGSAgent:
                 total_simulation_budget += single_simulation_budget
                 utils.update_metrics(aggregated_metrics, simulation_metrics)
 
+                for trajectory in trajectories:
+                    first_node = self.graph.get_node_info(trajectory[0][0])
+                    if first_node.unreachable and first_node != self.root_node:
+                        raise AssertionError("Before storrout Rollout First node is unreachable", first_node.chosen)
                 # Storing rollouts
                 if self.config.stored_rollouts.use_stored_rollouts:
                     storing_nodes_metrics = self.add_stored_nodes(trajectories)
@@ -188,6 +192,10 @@ class MCGSAgent:
             # Do we need it here, since it's already tracked in custom_minigrid_env.py -> step() # Maybe we don't ne
             spent_budget += 1
             current_observation = expansion_env.get_observation()
+            # TODO: parent in unreachable
+            if node.unreachable and node != self.root_node:
+                raise AssertionError("Expansion Parent node is unreachable", node.chosen, node.observation)
+
             child, reward = self.add_new_observation(current_observation, node, action, reward, done)
             if child is not None:
                 new_nodes.append(child)
@@ -223,6 +231,11 @@ class MCGSAgent:
             average_reward, trajectory, spent_budget = self.rollout(
                 action_to_node, env, action_list, action_failure_probabilities
             )
+
+            first_node = self.graph.get_node_info(trajectory[0][0])
+            if first_node.unreachable and first_node != self.root_node:
+                raise AssertionError("After simulation first node is unreachable", first_node.chosen)
+
             trajectories.append(trajectory)
             rewards.append(average_reward)
             spent_budget_simulation += spent_budget
@@ -266,7 +279,7 @@ class MCGSAgent:
             node_list.append(node)
             node = node.parent
             if n > 100:
-                print("Should not happen")
+                pass
 
         i = 1  # backprop discount factor
         nodes_updated = []
@@ -284,11 +297,16 @@ class MCGSAgent:
         cumulative_reward = 0
 
         rollout_env = copy.deepcopy(env)
-
         previous_observation = rollout_env.get_observation()
+
+        previous_node = self.graph.get_node_info(previous_observation)
+        if previous_node.unreachable and previous_node != self.root_node:
+            raise AssertionError("Rollout First node is unreachable", previous_node.chosen, previous_node.observation)
+
         state, reward, done, info = rollout_env.stochastic_step(action_to_node, action_failure_probabilities[0])
         observation = rollout_env.get_observation()
         path.append((previous_observation, observation, action_to_node, reward, done))
+
         spent_budget += 1
 
         previous_observation = rollout_env.get_observation()
@@ -307,6 +325,8 @@ class MCGSAgent:
         return cumulative_reward, path, spent_budget
 
     def add_new_observation(self, current_observation, parent_node, action, reward, done):
+        if parent_node.unreachable and parent_node != self.root_node:
+            raise AssertionError("Parent node is unreachable", parent_node.chosen, parent_node.observation)
 
         new_node = None
 
@@ -350,13 +370,19 @@ class MCGSAgent:
 
     def add_stored_nodes(self, trajectories):
 
+        # TODO: Somewhere here we mess up the graph structure and create a parent loop
         start_time = time.perf_counter()
         novel_nodes_added = 0
         merge_counter = 0
         # Trajectory is a list of tuples (parent_obs, current_obs, action, reward, done)
         for trajectory in trajectories:
 
-            for transition in trajectory:
+            # TODO: How is the parent of the first node unreachable??
+            first_node = self.graph.get_node_info(trajectory[0][0])
+            if first_node.unreachable and first_node != self.root_node:
+                raise AssertionError("Stored Rollout First node is unreachable", first_node.chosen)
+
+            for idx, transition in enumerate(trajectory):
 
                 parent_observation = transition[0]
                 observation = transition[1]
@@ -369,9 +395,26 @@ class MCGSAgent:
                 node_is_new = self.graph.has_node(observation) is False
                 edge_is_new = self.graph.has_edge_by_observations(parent_observation, observation) is False
                 novelty_criteria = novelty > 0 or self.config.stored_rollouts.only_store_novel_nodes is False
+
+                # If the parent node is unreachable, make it reachable and through the trajectory parent
+                parent_node = self.graph.get_node_info(parent_observation)
+                if parent_node.unreachable and parent_node != self.root_node:
+                    parent_node.parent = self.graph.get_node_info(trajectory[idx - 1][0])
+                    parent_node.action = trajectory[idx - 1][2]
+                    parent_node.unreachable = False
+
                 if node_is_new or edge_is_new:
                     if novelty_criteria:
-                        parent_node = self.graph.get_node_info(parent_observation)
+                        # TODO: how can an edge between parent and child exist, but the parent is unreachable?
+                        # That means that every time a node visited,
+                        # we need to check if it is unreachable - if it is, make it reachable
+                        if parent_node.unreachable and parent_node != self.root_node:
+                            raise AssertionError(
+                                "Add Stored Rollout Parent node is unreachable",
+                                parent_node.chosen,
+                                parent_node.observation,
+                            )
+
                         node, _ = self.add_new_observation(observation, parent_node, action, reward, done)
                         if node is not None and node.novelty_value >= 1:
                             novel_nodes_added += 1

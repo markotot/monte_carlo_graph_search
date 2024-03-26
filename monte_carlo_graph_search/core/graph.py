@@ -321,12 +321,13 @@ class Graph:
         all_nodes = self.get_all_nodes_info()
         for n in all_nodes:
             n.unreachable = True
+            n.parent = -1
+        self.root_node.parent = None
 
         # BFS implementation
         visited = []
         queue = []
         root_node_id = self.root_node.observation
-
         visited.append(root_node_id)
         queue.append(root_node_id)
 

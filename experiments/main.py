@@ -9,12 +9,10 @@ from monte_carlo_graph_search.environment.minigrid.custom_minigrid_env import (
 from monte_carlo_graph_search.utils import utils
 
 # from monte_carlo_graph_search.utils.plotting import plot_images
+# TODO: For some reason we get an infinite parent loop for backprop,
+#  it happens on seed:2, move=33, after storring rollouts
 
 
-# TODO:
-# 1) fix plot_images so that it works even if you have many images (50+), for some reason it crashes the cluster
-# 2) fix pipeline so that the first job is fetch and pull new version of project from git,
-# and the second job is to start all of the experiments etc.
 @hydra.main(version_base=None, config_path="configs", config_name="mcgs")
 def run_app(config: DictConfig) -> None:
 
