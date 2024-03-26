@@ -7,10 +7,7 @@ from monte_carlo_graph_search.environment.minigrid.custom_minigrid_env import (
     CustomMinigridEnv,
 )
 from monte_carlo_graph_search.utils import utils
-
-# from monte_carlo_graph_search.utils.plotting import plot_images
-# TODO: For some reason we get an infinite parent loop for backprop,
-#  it happens on seed:2, move=33, after storring rollouts
+from monte_carlo_graph_search.utils.plotting import plot_images
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="mcgs")
@@ -35,13 +32,13 @@ def run_app(config: DictConfig) -> None:
             break
 
         # agent.graph.draw_graph()
-    # combined_images = plot_images(
-    #     f"env seed: {config.env.seed}   agent seed: {config.search.seed}",
-    #     images,
-    #     total_reward,
-    #     save_to_neptune=False,
-    # )
-    # logger.upload_image("images/combined_images", combined_images)
+    combined_images = plot_images(
+        f"env seed: {config.env.seed}   agent seed: {config.search.seed}",
+        images,
+        total_reward,
+        save_to_neptune=False,
+    )
+    logger.upload_image("images/combined_images", combined_images)
 
     metrics = agent.get_final_metrics(done)
     logger.write(metrics, agent.move_counter)
