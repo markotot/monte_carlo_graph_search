@@ -1,5 +1,6 @@
 import math
 
+import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -27,19 +28,23 @@ def plot_images(seed_text, images, reward, save_to_neptune):
 
     padded_images = pad_images(np.array(images), top=3, bottom=3, left=3, right=3)
     image_rows = []
+    resize_factor = 4
     for i in range(rows):
         image_slice = padded_images[i * cols : (i + 1) * cols]
         image_row = np.concatenate(image_slice, 1)
-        image_rows.append(image_row)
-
-    plt.axis("off")
-    plt.title(f"{seed_text}   steps: {image_len - 1}   reward: {round(reward, 2)}")
+        x, y, _ = image_row.shape
+        image_row_resized = cv2.resize(
+            image_row, dsize=(y // resize_factor, x // resize_factor), interpolation=cv2.INTER_CUBIC
+        )
+        image_rows.append(image_row_resized)
 
     image = np.concatenate(image_rows, 0)
 
     if save_to_neptune:
         return image
     else:
+        plt.axis("off")
+        plt.title(f"{seed_text}   steps: {image_len - 1}   reward: {round(reward, 2)}")
         plt.imshow(image)
         plt.show()
         return None
