@@ -36,7 +36,7 @@ def run_app(config: DictConfig) -> None:
         f"env seed: {config.env.seed}   agent seed: {config.search.seed}",
         images,
         total_reward,
-        save_to_neptune=False,
+        save_to_neptune=True,
     )
     logger.upload_image("images/combined_images", combined_images)
 
