@@ -1,11 +1,11 @@
 env:
-  seed: 2
-  size: 16
+  seed: 1
+  size: 8
   level_name: "default" # Can be ["default", "test16", "labyrinth16"]
   action_failure_probability: 0.0
 
 search:
-  seed: 2
+  seed: 1
   max_moves: 100
   num_rollouts: 1
   rollout_depth: 25
