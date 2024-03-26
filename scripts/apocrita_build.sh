@@ -9,7 +9,7 @@ set GIT_BRANCH [lindex $argv 4];
 set PROJECT_NAME [lindex $argv 5];
 set NEPTUNE_API_TOKEN [lindex $argv 6];
 
-BUILD_JOB_PARAMS="-N APPTAINER-Build -v PROJECT_NAME=$PROJECT_NAME,GIT_BRANCH=$GIT_BRANCH,JOB_TYPE=\"build\" $PROJECT_NAME/scripts/submit_build_job.sh"
+set BUILD_JOB_PARAMS "-N APPTAINER-Build -v PROJECT_NAME=$PROJECT_NAME,GIT_BRANCH=$GIT_BRANCH,JOB_TYPE=\"build\" $PROJECT_NAME/scripts/submit_build_job.sh"
 
 spawn ssh -i $APOC_PRIVATE_KEY $APOC_USERNAME@login.hpc.qmul.ac.uk \
  "
