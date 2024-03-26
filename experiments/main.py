@@ -9,6 +9,7 @@ from monte_carlo_graph_search.environment.minigrid.custom_minigrid_env import (
 from monte_carlo_graph_search.utils import utils
 
 # from monte_carlo_graph_search.utils.plotting import plot_images
+# TODO: fix plotting so that it can plot images in neptune through apocrita (probably needs scaling)
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="mcgs")
