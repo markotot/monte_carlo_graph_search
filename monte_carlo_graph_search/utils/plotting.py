@@ -1,6 +1,5 @@
 import math
 
-import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -33,9 +32,7 @@ def plot_images(seed_text, images, reward, save_to_neptune):
         image_slice = padded_images[i * cols : (i + 1) * cols]
         image_row = np.concatenate(image_slice, 1)
         x, y, _ = image_row.shape
-        image_row_resized = cv2.resize(
-            image_row, dsize=(y // resize_factor, x // resize_factor), interpolation=cv2.INTER_CUBIC
-        )
+        image_row_resized = image_row[::resize_factor, ::resize_factor]
         image_rows.append(image_row_resized)
 
     image = np.concatenate(image_rows, 0)
