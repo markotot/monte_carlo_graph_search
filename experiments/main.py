@@ -8,8 +8,9 @@ from monte_carlo_graph_search.environment.minigrid.custom_minigrid_env import (
 )
 from monte_carlo_graph_search.utils import utils
 
-
 # from monte_carlo_graph_search.utils.plotting import plot_images
+
+
 # TODO:
 # 1) fix plot_images so that it works even if you have many images (50+), for some reason it crashes the cluster
 # 2) fix pipeline so that the first job is fetch and pull new version of project from git,
@@ -40,7 +41,7 @@ def run_app(config: DictConfig) -> None:
     #     f"env seed: {config.env.seed}   agent seed: {config.search.seed}",
     #     images,
     #     total_reward,
-    #     save_to_neptune=True,
+    #     save_to_neptune=False,
     # )
     # logger.upload_image("images/combined_images", combined_images)
 
