@@ -25,7 +25,7 @@ def plot_images(seed_text, images, reward, save_to_neptune):
 
     images.extend(((cols * rows) - image_len) * [empty])
 
-    padded_images = pad_images(np.array(images), top=3, bottom=3, left=3, right=3)
+    padded_images = pad_images(np.array(images), top=4, bottom=4, left=4, right=4)
     image_rows = []
     resize_factor = 4
     for i in range(rows):
