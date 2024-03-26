@@ -17,7 +17,10 @@ From: python:3.8
         git checkout $GIT_BRANCH
         git pull
     elif [ $JOB_TYPE = "run_experiment" ]; then
-        bash scripts/launch_exp.sh $RUN_NAME $SEED
+        echo "Running experiment"
+        echo "RUN_NAME: $RUN_NAME"
+        echo "SEED: $SEED"
+        bash scripts/launch_exp.sh RUN_NAME=$RUN_NAME SEED=$SEED
     elif [ $JOB_TYPE = "run_aggregate" ]; then
         bash scripts/launch_aggregate_data.sh $RUN_NAME $START_ID $END_ID
     fi
