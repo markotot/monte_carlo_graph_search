@@ -109,13 +109,17 @@ class MCGSAgent:
             iterations += 1
 
         # Select Move
-        best_node, action, select_best_move_metrics = self.select_best_move(self.root_node, closest=False)
+        best_node, action, select_best_move_metrics = self.select_best_move(
+            self.root_node, criteria=self.config.search.best_node_criteria
+        )
         aggregated_metrics.update(select_best_move_metrics)
 
         end_time = time.perf_counter()
         time_per_move = end_time - start_time
 
         subgoals = self.novelty.get_discovered_subgoals()
+
+        aggregated_metrics.update({f"{key}": int(value) for key, value in subgoals.items()})
 
         aggregated_metrics.update(self.graph.get_metrics())
         aggregated_metrics.update(
@@ -125,10 +129,6 @@ class MCGSAgent:
             total_num_simulations=self.num_simulations,
             iterations_per_move=iterations,
             time_per_move=time_per_move,
-            # disable for clusters
-            key_discovered=int(subgoals["key_discovered"]),
-            door_discovered=int(subgoals["door_discovered"]),
-            goal_discovered=int(subgoals["goal_discovered"]),
         )
 
         aggregated_metrics = utils.dict_sum(aggregated_metrics)
@@ -527,11 +527,11 @@ class MCGSAgent:
             else:
                 old_root_node.unreachable = True
 
-    def select_best_move(self, node, closest):
+    def select_best_move(self, node, criteria):
 
         start_time = time.perf_counter()
         best_node = None
-        if closest:  # find the closest done node
+        if criteria == "closest":  # find the closest done node
             best_node = self.graph.get_closest_done_node(only_reachable=True)
 
         if best_node is None:  # find the node with the highest reward + [novelty]

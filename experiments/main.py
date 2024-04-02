@@ -3,6 +3,10 @@ from omegaconf import DictConfig
 
 from monte_carlo_graph_search.agents.mcgs_agent import MCGSAgent
 from monte_carlo_graph_search.core.logger import NeptuneLogger
+from monte_carlo_graph_search.environment.griddly.clusters import ClustersEnv
+from monte_carlo_graph_search.environment.griddly.clusters_novelty import (
+    ClustersNovelty,
+)
 from monte_carlo_graph_search.environment.minigrid.custom_minigrid_env import (
     CustomMinigridEnv,
 )
@@ -12,21 +16,29 @@ from monte_carlo_graph_search.environment.minigrid.minigrid_novelty import (
 from monte_carlo_graph_search.utils import utils
 from monte_carlo_graph_search.utils.plotting import plot_images
 
-# from monte_carlo_graph_search.environment.griddly.clusters import ClustersEnv
-# from monte_carlo_graph_search.environment.griddly.clusters_novelty import ClustersNovelty
 # TODO: fix plotting so that it can plot images in neptune through apocrita (probably needs scaling)
+
+
+def init_env(config):
+
+    config_type = config.env.type
+    if config_type == "minigrid":
+        env = CustomMinigridEnv(env_config=config.env)
+        novelty = MinigridNovelty(config=config.novelty)
+    elif config_type == "clusters":
+        env = ClustersEnv(config=config.env)
+        novelty = ClustersNovelty(config=config.novelty)
+    else:
+        raise ValueError(f"Unknown environment type: {config_type}")
+    return env, novelty
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="mcgs")
 def run_app(config: DictConfig) -> None:
 
-    print("R started")
     logger = NeptuneLogger(config=config, name="MCGS")
 
-    env = CustomMinigridEnv(env_config=config.env)
-    novelty = MinigridNovelty(config=config.novelty)
-    # env = ClustersEnv(config=config.env)
-    # novelty = ClustersNovelty(config=config.novelty)
+    env, novelty = init_env(config)
 
     agent = MCGSAgent(env=env, novelty=novelty, logger=logger, config=config)
 
