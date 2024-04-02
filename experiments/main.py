@@ -17,6 +17,10 @@ from monte_carlo_graph_search.utils import utils
 from monte_carlo_graph_search.utils.plotting import plot_images
 
 # TODO: fix plotting so that it can plot images in neptune through apocrita (probably needs scaling)
+# TODO: check why CLUSTERS play isn't optimal
+#  is there something wrong with the value saved in the graph?
+#  print the best value node that is found in the graph
+#  create custom reward-done function?
 
 
 def init_env(config):
