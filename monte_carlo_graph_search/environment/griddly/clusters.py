@@ -35,7 +35,7 @@ class ClustersEnv:
             player_observer_type=gd.ObserverType.VECTOR,
             global_observer_type=gd.ObserverType.SPRITE_2D,
             level=0,
-            max_steps=100,
+            max_steps=50,
         )
 
         self.env.unwrapped.level = 0  # TODO: Fix directly in Griddly
@@ -48,12 +48,15 @@ class ClustersEnv:
         self.done = None
         self.info = None
 
+        self.current_step = 0
+
         self.reset()
 
     def step(self, action):
 
         self.action = action  # Save the original action
         self.state, self.reward, self.done, self.info = self.env.step(action)  # Do the step
+        self.current_step += 1
         observation = self.observation()
         ClustersEnv.forward_model_calls += 1
         return observation, self.reward, self.done, self.info
@@ -109,5 +112,6 @@ class ClustersEnv:
         x.reward = copy.deepcopy(self.reward)
         x.done = copy.deepcopy(self.done)
         x.info = copy.deepcopy(self.info)
+        x.current_step = copy.deepcopy(self.current_step)
 
         return x

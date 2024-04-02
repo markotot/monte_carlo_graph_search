@@ -64,7 +64,7 @@ def run_app(config: DictConfig) -> None:
     )
     logger.upload_image("images/combined_images", combined_images)
 
-    metrics = agent.get_final_metrics(done)
+    metrics = agent.get_final_metrics(done, total_reward)
     logger.write(metrics, agent.move_counter)
 
     utils.add_to_experiment_file(f"../experiment_runs/{config.run_name}.txt", logger.get_id())

@@ -1,19 +1,19 @@
 env:
-  type: "clusters"
+  type: "minigrid"
   seed: 2
   size: 16
   level_name: "default" # Can be ["default", "test16", "labyrinth16"]
   action_failure_probability: 0.0
 
 search:
-  seed: 2
+  seed: 1
   max_moves: 100
   num_rollouts: 1
   rollout_depth: 25
   budget_per_move: 1000
   discount_factor: 0.999
-#  best_node_criteria: "closest" # Can be ["closest", "best_value"]
-  best_node_criteria: "best_value" # Can be ["closest", "best_value"]
+  best_node_criteria: "closest" # Can be ["closest", "best_value"]
+#  best_node_criteria: "best_value" # Can be ["closest", "best_value"]
 
 selection:
   use_noisy_frontier_selection: True

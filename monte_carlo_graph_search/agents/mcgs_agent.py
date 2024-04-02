@@ -171,7 +171,7 @@ class MCGSAgent:
 
         start_time = time.perf_counter()
         if node.done:
-            return [], []
+            return [], [], 1, {}
 
         new_nodes = []
         actions_to_new_nodes = []
@@ -444,7 +444,7 @@ class MCGSAgent:
 
         spent_budget = 0
         reached_destination = False
-
+        done = env.done
         while self.graph.has_path(node, destination_node) and not reached_destination:
 
             observations, actions = self.graph.get_path(node, destination_node)
@@ -454,7 +454,12 @@ class MCGSAgent:
                 previous_observation = env.get_observation()
                 parent_node = self.graph.get_node_info(previous_observation)
 
+                if done:
+                    return self.graph.get_node_info(previous_observation), spent_budget
+
                 state, reward, done, info = env.step(action)
+                # TODO: can happen if the env.current_step is bigger than 50 (max_steps in config)
+
                 spent_budget += 1
                 current_observation = env.get_observation()
 
@@ -553,10 +558,11 @@ class MCGSAgent:
         metrics = {"select_move_time": (end_time - start_time)}
         return best_node, edge.action, metrics
 
-    def get_final_metrics(self, done):
+    def get_final_metrics(self, done, total_reward):
 
         metrics = {
             "total_moves": self.move_counter,
+            "reward": total_reward,
             "game_finished": done,
         }
         subgoal_metrics = self.novelty.get_subgoal_metrics()
