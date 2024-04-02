@@ -14,8 +14,8 @@ class ClustersNovelty:
 
     def update_posterior(self, observation, done, nodes, move, forward_model_calls):
 
-        return 0
         self.total_data_points += 1
+        return 0
 
     def get_discovered_subgoals(self):
         return {}

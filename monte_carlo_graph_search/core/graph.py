@@ -79,6 +79,7 @@ class Graph:
                     best_node = n
                     best_node_value = n.uct_value() + noise[i] + novelty_factor * n.novelty_value
 
+            assert self.has_path(self.root_node, best_node)
             return best_node
 
     def set_root_node(self, root_node):
@@ -134,7 +135,7 @@ class Graph:
                 node_list.append(self.graph.nodes[node]["info"])
         return node_list
 
-    def get_best_node(self, only_reachable=False):
+    def get_best_node(self, only_reachable):
 
         nodes = self.get_all_nodes_info()
         nodes.remove(self.root_node)
@@ -163,10 +164,9 @@ class Graph:
 
         return best_node
 
-    def get_closest_done_node(self, only_reachable=False):
+    def get_closest_done_node(self, only_reachable):
 
         selectable_nodes = [x for x in self.get_all_nodes_info() if x.terminated]
-
         if only_reachable:
             selectable_nodes = [x for x in selectable_nodes if x.unreachable is False]
 
@@ -222,7 +222,7 @@ class Graph:
     def get_edge_info(self, parent, child):
         return self.graph.get_edge_data(parent.observation, child.observation)["info"]
 
-    def count_unreachable_nodes(self):
+    def get_unreachable_nodes(self):
         i = 0
         for node_info in self.get_all_nodes_info():
             if node_info.unreachable:
@@ -235,7 +235,7 @@ class Graph:
             "total_nodes": len(self.graph.nodes),
             "total_edges": len(self.graph.edges),
             "total_frontier_nodes": len(self.frontier),
-            "total_unreachable_nodes": self.count_unreachable_nodes(),
+            "total_unreachable_nodes": self.get_unreachable_nodes(),
             "new_nodes": len(self.new_nodes),
         }
 

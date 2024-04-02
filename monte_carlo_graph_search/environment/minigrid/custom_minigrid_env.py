@@ -35,8 +35,10 @@ class CustomMinigridEnv(DoorKeyEnv):
         self.action = None
         self.state = None
         self.reward = None
+
         self.terminated = None
         self.truncated = None
+
         self.info = None
 
         self.reset()
@@ -45,13 +47,18 @@ class CustomMinigridEnv(DoorKeyEnv):
 
         self.action = action  # Save the original action
         self.state, self.reward, self.terminated, self.truncated, self.info = super().step(action)  # Do the step
-        if self.terminated:
-            print("Terminated")
-        elif self.truncated:
-            print("Truncated")
         observation = self.observation()
         CustomMinigridEnv.forward_model_calls += 1
         return observation, self.reward, self.terminated, self.truncated, self.info
+
+    def stochastic_step(self, action, action_failure_prob=None):
+        self.action = action  # Save the original action
+
+        if self.is_stochastic:  # If the env is stochastic check if action should fail
+            if action_failure_prob < self.config.action_failure_probability:  # If the action should fail, swap it here
+                action = 6  # No action
+
+        return self.step(action)
 
     def _gen_grid(self, width, height):
 
@@ -105,15 +112,6 @@ class CustomMinigridEnv(DoorKeyEnv):
             AssertionError("unknown object type in decode '%s'" % obj_type)
 
         self.put_obj(v, row, column)
-
-    def stochastic_step(self, action, action_failure_prob=None):
-        self.action = action  # Save the original action
-
-        if self.is_stochastic:  # If the env is stochastic check if action should fail
-            if action_failure_prob < self.config.action_failure_probability:  # If the action should fail, swap it here
-                action = 6  # No action
-
-        return self.step(action)
 
     def reset(self):
 

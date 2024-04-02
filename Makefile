@@ -1,4 +1,4 @@
-GIT_BRANCH = main
+GIT_BRANCH = minigrid_branch
 PROJECT_NAME = monte_carlo_graph_search
 
 #APOCRITA
@@ -23,13 +23,6 @@ apocrita_clone_repo:
 	${APOCRITA_USER} ${APOCRITA_PASSPHRASE} ${APOCRITA_USER_PASSWORD} ${AP_PRIVATE_KEY_PATH} \
  	${GIT_BRANCH} ${GITHUB_USER} ${GITHUB_TOKEN} ${PROJECT_NAME}
 
-# Builds and runs the main.py on apocrita using apptainer
-.SILENT: apocrita_build_and_run
-apocrita_build_and_run:
-	sudo expect ./scripts/apocrita_build_and_run.sh \
- 	${APOCRITA_USER} ${APOCRITA_PASSPHRASE} ${APOCRITA_USER_PASSWORD} ${AP_PRIVATE_KEY_PATH} \
- 	${GIT_BRANCH} ${PROJECT_NAME} ${NEPTUNE_API_TOKEN} ${START_SEED} ${END_SEED} ${RUN_NAME}
-
 # Aggregates the results of the main.py on apocrita using apptainer
 .SILENT: apocrita_aggregate
 apocrita_aggregate:
@@ -52,6 +45,6 @@ apocrita_run:
 
 .SILENT: apocrita_clean_runs
 apocrita_clean_runs:
-	sudo expect ./scripts/apocrita_clean.sh \
+	sudo expect ./scripts/apocrita_clean_runs.sh \
  	${APOCRITA_USER} ${APOCRITA_PASSPHRASE} ${APOCRITA_USER_PASSWORD} ${AP_PRIVATE_KEY_PATH} \
  	${GIT_BRANCH} ${PROJECT_NAME}
