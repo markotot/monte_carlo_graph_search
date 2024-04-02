@@ -109,7 +109,7 @@ class MCGSAgent:
             iterations += 1
 
         # Select Move
-        best_node, action, select_best_move_metrics = self.select_best_move(self.root_node, closest=True)
+        best_node, action, select_best_move_metrics = self.select_best_move(self.root_node, closest=False)
         aggregated_metrics.update(select_best_move_metrics)
 
         end_time = time.perf_counter()
@@ -530,6 +530,7 @@ class MCGSAgent:
     def select_best_move(self, node, closest):
 
         start_time = time.perf_counter()
+        best_node = None
         if closest:  # find the closest done node
             best_node = self.graph.get_closest_done_node(only_reachable=True)
 
