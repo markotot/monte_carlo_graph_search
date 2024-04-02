@@ -1,4 +1,3 @@
-import copy
 import time
 
 import numpy as np
@@ -63,7 +62,7 @@ class MCGSAgent:
         iterations = 0
         while remaining_budget > 0:
             # Selection
-            selection_env = copy.deepcopy(self.env)
+            selection_env = self.env.copy()
             node, selection_budget, selection_metrics = self.selection(selection_env)
             utils.update_metrics(aggregated_metrics, selection_metrics)
 
@@ -186,7 +185,7 @@ class MCGSAgent:
 
         for action in range(self.env.action_space.n):
 
-            expansion_env = copy.deepcopy(env)
+            expansion_env = env.copy()
             state, reward, done, info = expansion_env.step(action)
             # Do we need it here, since it's already tracked in custom_minigrid_env.py -> step() # Maybe we don't ne
             spent_budget += 1
@@ -266,6 +265,9 @@ class MCGSAgent:
                 non_obsolete_nodes.append(self.graph.get_node_info(transition[0]))
                 total_rollout_reward += reward
 
+        # TODO: check if need to add the last node to the list
+        # non_obsolete_nodes.append(self.graph.get_node_info(trajectory[-1][1]))
+
         # creates a list of rolled out nodes from last to first
         node_list = list(reversed(non_obsolete_nodes))
 
@@ -295,7 +297,7 @@ class MCGSAgent:
         spent_budget = 0
         cumulative_reward = 0
 
-        rollout_env = copy.deepcopy(env)
+        rollout_env = env.copy()
         previous_observation = rollout_env.get_observation()
 
         previous_node = self.graph.get_node_info(previous_observation)
@@ -329,12 +331,10 @@ class MCGSAgent:
 
         new_node = None
 
-        if (
-            current_observation != parent_node.observation
-        ):  # Don't add the node if nothing has changed in the observation
-            if not self.graph.has_node(
-                current_observation
-            ):  # If the node is not in the graph, create it and add it to the graph
+        # Don't add the node if nothing has changed in the observation
+        if current_observation != parent_node.observation:
+            # If the node is not in the graph, create it and add it to the graph
+            if not self.graph.has_node(current_observation):
 
                 child_node = Node(
                     observation=current_observation,
@@ -369,14 +369,14 @@ class MCGSAgent:
 
     def add_stored_nodes(self, trajectories):
 
-        # TODO: Somewhere here we mess up the graph structure and create a parent loop
+        # TODO: Somewhere here we mess up the graph structure and create a parent loop - Solved?
         start_time = time.perf_counter()
         novel_nodes_added = 0
         merge_counter = 0
         # Trajectory is a list of tuples (parent_obs, current_obs, action, reward, done)
         for trajectory in trajectories:
 
-            # TODO: How is the parent of the first node unreachable??
+            # TODO: How is the parent of the first node unreachable?? - Solved?
             first_node = self.graph.get_node_info(trajectory[0][0])
             if first_node.unreachable and first_node != self.root_node:
                 raise AssertionError("Stored Rollout First node is unreachable", first_node.chosen)

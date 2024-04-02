@@ -1,10 +1,11 @@
+import copy
+
 import gym
 import numpy as np
 from griddly import GymWrapperFactory, gd
-from minigrid.envs import DoorKeyEnv
 
 
-class GriddlyEnv(DoorKeyEnv):
+class ClustersEnv:
     """
     Environment with a door and key, sparse reward
     """
@@ -12,18 +13,25 @@ class GriddlyEnv(DoorKeyEnv):
     forward_model_calls = 0
     initialized = False
 
-    def __init__(self, env_config):
+    def __init__(self, config):
 
-        if GriddlyEnv.initialized is False:
+        self.config = config
+        if ClustersEnv.initialized is False:
             wrapper = GymWrapperFactory()
             wrapper.build_gym_from_yaml("ClustersEnv", "../monte_carlo_graph_search/environment/griddly/clusters.yaml")
-            GriddlyEnv.initialized = True
+            ClustersEnv.initialized = True
 
         self.env = gym.make(
             "GDY-ClustersEnv-v0",
             player_observer_type=gd.ObserverType.VECTOR,
             global_observer_type=gd.ObserverType.SPRITE_2D,
+            level=0,
+            max_steps=100,
         )
+
+        self.env.unwrapped.level = 0  # TODO: Fix directly in Griddly
+        self.action_space = self.env.action_space
+        self.is_stochastic = False
 
         self.action = None
         self.state = None
@@ -38,7 +46,7 @@ class GriddlyEnv(DoorKeyEnv):
         self.action = action  # Save the original action
         self.state, self.reward, self.done, self.info = self.env.step(action)  # Do the step
         observation = self.observation()
-        GriddlyEnv.forward_model_calls += 1
+        ClustersEnv.forward_model_calls += 1
         return observation, self.reward, self.done, self.info
 
     def stochastic_step(self, action, action_failure_prob=None):
@@ -48,9 +56,7 @@ class GriddlyEnv(DoorKeyEnv):
             if action_failure_prob < self.config.action_failure_probability:  # If the action should fail, swap it here
                 action = 6  # No action
 
-        self.state, self.reward, self.done, self.info = self.step(action)  # Do the step
-        observation = self.observation()
-        return observation, self.reward, self.done, self.info
+        return self.step(action)
 
     def reset(self):
 
@@ -82,4 +88,17 @@ class GriddlyEnv(DoorKeyEnv):
         for idx, layer in enumerate(layers):
             grid = np.add(grid, layer * (idx + 1))
 
-        return grid.T
+        return str(grid.T)
+
+    def copy(self):
+        env = self.env.clone()
+        x = ClustersEnv(self.config)
+        x.env = env
+        x.env.unwrapped.level = 0  # TODO: Fix directly in Griddly
+        x.action = copy.deepcopy(self.action)
+        x.state = copy.deepcopy(self.state)
+        x.reward = copy.deepcopy(self.reward)
+        x.done = copy.deepcopy(self.done)
+        x.info = copy.deepcopy(self.info)
+
+        return x

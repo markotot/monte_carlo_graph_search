@@ -4,7 +4,7 @@ Environment:
   Description: Cluster the coloured objects together by pushing them against the static coloured blocks.
   Observers:
     Sprite2D:
-      TileSize: 12
+      TileSize: 16
       BackgroundTile: oryx/oryx_fantasy/floor1-2.png
   Variables:
     - Name: box_count

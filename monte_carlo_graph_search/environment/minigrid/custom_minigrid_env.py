@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 from minigrid.core.grid import Grid
 from minigrid.core.world_object import Ball, Box, Door, Floor, Goal, Key, Lava, Wall
@@ -145,6 +147,9 @@ class CustomMinigridEnv(DoorKeyEnv):
         grid = [("empty" if tile is None else tile.type) for tile in self.grid.grid]
 
         return tuple([agent_pos_x, agent_pos_y, agent_dir, agent_carry] + doors_open + doors_locked + grid)
+
+    def copy(self):
+        return copy.deepcopy(self)
 
     def get_local_surrounding(self, sight=1):
 
