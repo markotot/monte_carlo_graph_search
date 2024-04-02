@@ -6,6 +6,9 @@ from monte_carlo_graph_search.core.logger import NeptuneLogger
 from monte_carlo_graph_search.environment.minigrid.custom_minigrid_env import (
     CustomMinigridEnv,
 )
+from monte_carlo_graph_search.environment.minigrid.minigrid_novelty import (
+    MinigridNovelty,
+)
 from monte_carlo_graph_search.utils import utils
 from monte_carlo_graph_search.utils.plotting import plot_images
 
@@ -18,7 +21,8 @@ def run_app(config: DictConfig) -> None:
     logger = NeptuneLogger(config=config, name="MCGS")
 
     env = CustomMinigridEnv(env_config=config.env)
-    agent = MCGSAgent(env=env, logger=logger, config=config)
+    novelty = MinigridNovelty(config=config.novelty)
+    agent = MCGSAgent(env=env, novelty=novelty, logger=logger, config=config)
 
     image = env.render()
     images = [image]

@@ -1,7 +1,7 @@
-class Novelty:
+class MinigridNovelty:
     def __init__(self, config):
         self.total_data_points = 0
-        self.threshold = config.novelty.novelty_threshold
+        self.threshold = config.novelty_threshold
 
         self.novelty_features = {
             "x_pos": {},

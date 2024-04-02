@@ -6,12 +6,11 @@ import numpy as np
 from monte_carlo_graph_search.core.edge import Edge
 from monte_carlo_graph_search.core.graph import Graph
 from monte_carlo_graph_search.core.node import Node
-from monte_carlo_graph_search.core.novelty import Novelty
 from monte_carlo_graph_search.utils import utils
 
 
 class MCGSAgent:
-    def __init__(self, env, logger, config):
+    def __init__(self, env, novelty, logger, config):
 
         self.config = config
         self.random = np.random.RandomState(self.config.search.seed)
@@ -19,7 +18,7 @@ class MCGSAgent:
         self.env = env
         self.logger = logger
         self.graph = Graph(seed=self.config.search.seed, config=config)
-        self.novelty = Novelty(config=config)
+        self.novelty = novelty
 
         # statistic counters, maybe move into another class
         self.edge_counter = 0
