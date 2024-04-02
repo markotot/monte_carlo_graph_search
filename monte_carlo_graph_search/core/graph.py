@@ -28,7 +28,7 @@ class Graph:
 
         if self.graph.has_node(node.observation) is False:
             self.graph.add_node(node.observation, info=node)
-            if node.done is False:
+            if node.terminated is False:
                 self.add_to_frontier(node)
             return True
         return False
@@ -166,7 +166,7 @@ class Graph:
 
     def get_closest_done_node(self, only_reachable):
 
-        selectable_nodes = [x for x in self.get_all_nodes_info() if x.done]
+        selectable_nodes = [x for x in self.get_all_nodes_info() if x.terminated]
         if only_reachable:
             selectable_nodes = [x for x in selectable_nodes if x.unreachable is False]
 
@@ -265,7 +265,7 @@ class Graph:
                 node_color_map.append("grey")
             elif node in self.new_nodes:
                 node_color_map.append("pink")
-            elif node.done:
+            elif node.terminated:
                 node_color_map.append("green")
             elif node in self.frontier:
                 node_color_map.append("red")

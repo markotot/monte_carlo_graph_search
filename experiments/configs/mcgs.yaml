@@ -6,7 +6,7 @@ env:
   action_failure_probability: 0.0
 
 search:
-  seed: 1
+  seed: 2
   max_moves: 100
   num_rollouts: 1
   rollout_depth: 25

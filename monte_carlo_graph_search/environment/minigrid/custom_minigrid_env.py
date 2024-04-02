@@ -35,7 +35,10 @@ class CustomMinigridEnv(DoorKeyEnv):
         self.action = None
         self.state = None
         self.reward = None
-        self.done = None
+
+        self.terminated = None
+        self.truncated = None
+
         self.info = None
 
         self.reset()
@@ -43,11 +46,19 @@ class CustomMinigridEnv(DoorKeyEnv):
     def step(self, action):
 
         self.action = action  # Save the original action
-        self.state, self.reward, term, trunc, self.info = super().step(action)  # Do the step
-        self.done = term or trunc
+        self.state, self.reward, self.terminated, self.truncated, self.info = super().step(action)  # Do the step
         observation = self.observation()
         CustomMinigridEnv.forward_model_calls += 1
-        return observation, self.reward, self.done, self.info
+        return observation, self.reward, self.terminated, self.truncated, self.info
+
+    def stochastic_step(self, action, action_failure_prob=None):
+        self.action = action  # Save the original action
+
+        if self.is_stochastic:  # If the env is stochastic check if action should fail
+            if action_failure_prob < self.config.action_failure_probability:  # If the action should fail, swap it here
+                action = 6  # No action
+
+        return self.step(action)
 
     def _gen_grid(self, width, height):
 
@@ -102,21 +113,11 @@ class CustomMinigridEnv(DoorKeyEnv):
 
         self.put_obj(v, row, column)
 
-    def stochastic_step(self, action, action_failure_prob=None):
-        self.action = action  # Save the original action
-
-        if self.is_stochastic:  # If the env is stochastic check if action should fail
-            if action_failure_prob < self.config.action_failure_probability:  # If the action should fail, swap it here
-                action = 6  # No action
-
-        self.state, self.reward, self.done, self.info = self.step(action)  # Do the step
-        observation = self.observation()
-        return observation, self.reward, self.done, self.info
-
     def reset(self):
 
         self.state = None
-        self.done = None
+        self.terminated = None
+        self.truncated = None
         self.reward = None
         self.info = None
 

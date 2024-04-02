@@ -48,11 +48,11 @@ def run_app(config: DictConfig) -> None:
     total_reward = 0
     for _ in range(config.search.max_moves):
         action = agent.plan()
-        state, reward, done, info = agent.act(action)
+        state, reward, terminated, truncated, info = agent.act(action)
         image = env.render()
         images.append(image)
         total_reward += reward
-        if done:
+        if terminated or truncated:
             break
 
         # agent.graph.draw_graph()
@@ -64,7 +64,7 @@ def run_app(config: DictConfig) -> None:
     )
     logger.upload_image("images/combined_images", combined_images)
 
-    metrics = agent.get_final_metrics(done, total_reward)
+    metrics = agent.get_final_metrics(terminated or truncated, total_reward)
     logger.write(metrics, agent.move_counter)
 
     utils.add_to_experiment_file(f"../experiment_runs/{config.run_name}.txt", logger.get_id())

@@ -61,7 +61,7 @@ class MinigridNovelty:
 
         return novelty_value
 
-    def update_posterior(self, observation, done, nodes, move, forward_model_calls):
+    def update_posterior(self, observation, terminated, nodes, move, forward_model_calls):
 
         x_pos, y_pos, rot, carry, opened, locked = observation[:6]
 
@@ -99,7 +99,7 @@ class MinigridNovelty:
             self.discover_subgoal("key", nodes, move, forward_model_calls)
         if opened is True:
             self.discover_subgoal("door", nodes, move, forward_model_calls)
-        if done is True:
+        if terminated is True:
             self.discover_subgoal("goal", nodes, move, forward_model_calls)
 
         self.total_data_points += 1
