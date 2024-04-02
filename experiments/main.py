@@ -12,16 +12,22 @@ from monte_carlo_graph_search.environment.minigrid.minigrid_novelty import (
 from monte_carlo_graph_search.utils import utils
 from monte_carlo_graph_search.utils.plotting import plot_images
 
+# from monte_carlo_graph_search.environment.griddly.clusters import ClustersEnv
+# from monte_carlo_graph_search.environment.griddly.clusters_novelty import ClustersNovelty
 # TODO: fix plotting so that it can plot images in neptune through apocrita (probably needs scaling)
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="mcgs")
 def run_app(config: DictConfig) -> None:
 
+    print("R started")
     logger = NeptuneLogger(config=config, name="MCGS")
 
     env = CustomMinigridEnv(env_config=config.env)
     novelty = MinigridNovelty(config=config.novelty)
+    # env = ClustersEnv(config=config.env)
+    # novelty = ClustersNovelty(config=config.novelty)
+
     agent = MCGSAgent(env=env, novelty=novelty, logger=logger, config=config)
 
     image = env.render()

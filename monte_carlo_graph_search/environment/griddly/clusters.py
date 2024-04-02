@@ -1,4 +1,5 @@
 import copy
+from os import getcwd
 
 import gym
 import numpy as np
@@ -17,8 +18,16 @@ class ClustersEnv:
 
         self.config = config
         if ClustersEnv.initialized is False:
+
+            path = getcwd().split("/")[-1] == "experiments"
+            yaml_path = (
+                "../monte_carlo_graph_search/environment/griddly/clusters.yaml"
+                if path
+                else "monte_carlo_graph_search/environment/griddly/clusters.yaml"
+            )
             wrapper = GymWrapperFactory()
-            wrapper.build_gym_from_yaml("ClustersEnv", "../monte_carlo_graph_search/environment/griddly/clusters.yaml")
+            wrapper.build_gym_from_yaml("ClustersEnv", yaml_path)
+
             ClustersEnv.initialized = True
 
         self.env = gym.make(

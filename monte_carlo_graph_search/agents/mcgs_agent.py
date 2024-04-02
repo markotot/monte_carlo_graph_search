@@ -125,6 +125,7 @@ class MCGSAgent:
             total_num_simulations=self.num_simulations,
             iterations_per_move=iterations,
             time_per_move=time_per_move,
+            # disable for clusters
             key_discovered=int(subgoals["key_discovered"]),
             door_discovered=int(subgoals["door_discovered"]),
             goal_discovered=int(subgoals["goal_discovered"]),
@@ -230,10 +231,6 @@ class MCGSAgent:
                 action_to_node, env, action_list, action_failure_probabilities
             )
 
-            first_node = self.graph.get_node_info(trajectory[0][0])
-            if first_node.unreachable and first_node != self.root_node:
-                raise AssertionError("After simulation first node is unreachable", first_node.chosen)
-
             trajectories.append(trajectory)
             rewards.append(average_reward)
             spent_budget_simulation += spent_budget
@@ -305,23 +302,26 @@ class MCGSAgent:
             raise AssertionError("Rollout First node is unreachable", previous_node.chosen, previous_node.observation)
 
         state, reward, done, info = rollout_env.stochastic_step(action_to_node, action_failure_probabilities[0])
+
+        cumulative_reward += reward
+        spent_budget += 1
+
         observation = rollout_env.get_observation()
         path.append((previous_observation, observation, action_to_node, reward, done))
 
-        spent_budget += 1
+        if not done:
+            previous_observation = rollout_env.get_observation()
+            for idx, action in enumerate(action_list):
 
-        previous_observation = rollout_env.get_observation()
-        for idx, action in enumerate(action_list):
+                state, reward, done, info = rollout_env.stochastic_step(action, action_failure_probabilities[idx + 1])
+                observation = rollout_env.get_observation()
+                spent_budget += 1
 
-            state, reward, done, info = rollout_env.stochastic_step(action, action_failure_probabilities[idx + 1])
-            observation = rollout_env.get_observation()
-            spent_budget += 1
-
-            cumulative_reward += reward
-            path.append((previous_observation, observation, action, reward, done))
-            previous_observation = observation
-            if done:
-                break
+                cumulative_reward += reward
+                path.append((previous_observation, observation, action, reward, done))
+                previous_observation = observation
+                if done:
+                    break
 
         return cumulative_reward, path, spent_budget
 
