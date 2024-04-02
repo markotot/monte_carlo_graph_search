@@ -10,7 +10,7 @@ search:
   max_moves: 100
   num_rollouts: 1
   rollout_depth: 25
-  budget_per_move: 20000
+  budget_per_move: 1000
   discount_factor: 0.999
   best_node_criteria: "closest" # Can be ["closest", "best_value"]
 #  best_node_criteria: "best_value" # Can be ["closest", "best_value"]
