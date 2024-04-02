@@ -527,7 +527,7 @@ class MCGSAgent:
             else:
                 old_root_node.unreachable = True
 
-    def select_best_move(self, node, closest=False):
+    def select_best_move(self, node, closest):
 
         start_time = time.perf_counter()
         if closest:  # find the closest done node

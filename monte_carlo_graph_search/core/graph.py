@@ -135,7 +135,7 @@ class Graph:
                 node_list.append(self.graph.nodes[node]["info"])
         return node_list
 
-    def get_best_node(self, only_reachable=False):
+    def get_best_node(self, only_reachable):
 
         nodes = self.get_all_nodes_info()
         nodes.remove(self.root_node)
@@ -164,7 +164,7 @@ class Graph:
 
         return best_node
 
-    def get_closest_done_node(self, only_reachable=False):
+    def get_closest_done_node(self, only_reachable):
 
         selectable_nodes = [x for x in self.get_all_nodes_info() if x.done]
         if only_reachable:
