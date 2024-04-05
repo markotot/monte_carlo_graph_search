@@ -35,7 +35,7 @@ class ClustersEnv:
             player_observer_type=gd.ObserverType.VECTOR,
             global_observer_type=gd.ObserverType.SPRITE_2D,
             level=0,
-            max_steps=50,
+            max_steps=200,
         )
 
         self.env.unwrapped.level = 0  # TODO: Fix directly in Griddly
@@ -65,6 +65,10 @@ class ClustersEnv:
         else:
             self.terminated = False
             self.truncated = False
+
+        # If truncated gets reward -1, in the later stages of the game, every rollout ends with -1
+        if self.truncated:
+            self.reward = 0
 
         observation = self.observation()
         ClustersEnv.forward_model_calls += 1

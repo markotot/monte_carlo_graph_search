@@ -1,5 +1,6 @@
 env:
-  type: "minigrid"
+  type: "minigrid" # Can be ["minigrid", "clusters"]
+#  type: "clusters" # Can be ["minigrid", "clusters"]
   seed: 2
   size: 16
   level_name: "default" # Can be ["default", "test16", "labyrinth16"]

@@ -12,6 +12,8 @@ class Node:
         self.truncated = truncated
         self.visits = visits
 
+        self.max_value = value
+
         self.novelty_value = novelty_value
         if parent is not None:
             self.novelty_value += self.parent.novelty_value * config.novelty.inherit_novelty_factor
