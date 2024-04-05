@@ -264,7 +264,6 @@ class MCGSAgent:
                 non_obsolete_nodes.append(self.graph.get_node_info(transition[0]))
                 total_rollout_reward += reward
 
-        # TODO: check if need to add the last node to the list
         non_obsolete_nodes.append(self.graph.get_node_info(trajectory[-1][1]))
 
         # creates a list of rolled out nodes from last to first
