@@ -35,7 +35,7 @@ class ClustersEnv:
             player_observer_type=gd.ObserverType.VECTOR,
             global_observer_type=gd.ObserverType.SPRITE_2D,
             level=0,
-            max_steps=50,
+            max_steps=200,
         )
 
         self.env.unwrapped.level = 0  # TODO: Fix directly in Griddly
@@ -65,6 +65,9 @@ class ClustersEnv:
         else:
             self.terminated = False
             self.truncated = False
+
+        if self.reward <= 0:
+            self.reward = 0
 
         observation = self.observation()
         ClustersEnv.forward_model_calls += 1

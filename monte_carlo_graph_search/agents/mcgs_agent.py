@@ -11,6 +11,7 @@ from monte_carlo_graph_search.utils import utils
 class MCGSAgent:
     def __init__(self, env, novelty, logger, config):
 
+        self.best_nodes_list = []
         self.config = config
         self.random = np.random.RandomState(self.config.search.seed)
 
@@ -264,7 +265,7 @@ class MCGSAgent:
                 total_rollout_reward += reward
 
         # TODO: check if need to add the last node to the list
-        # non_obsolete_nodes.append(self.graph.get_node_info(trajectory[-1][1]))
+        non_obsolete_nodes.append(self.graph.get_node_info(trajectory[-1][1]))
 
         # creates a list of rolled out nodes from last to first
         node_list = list(reversed(non_obsolete_nodes))
@@ -277,8 +278,7 @@ class MCGSAgent:
             n += 1
             node_list.append(node)
             node = node.parent
-            if n > 100:
-                pass
+            assert n < 200, "Backpropagation infinite loop"
 
         i = 1  # backprop discount factor
         nodes_updated = []
@@ -554,6 +554,8 @@ class MCGSAgent:
         if best_node is None:  # if there is no reachable node, use root (6 - no action)
             return self.root_node, 6
 
+        print("Best node", best_node.get_value(), best_node.total_value, best_node.visits)
+        self.best_nodes_list.append(best_node)
         while best_node.parent != self.root_node:  # get to the first child of root
             best_node = best_node.parent
 
