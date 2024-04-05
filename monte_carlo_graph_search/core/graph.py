@@ -147,7 +147,7 @@ class Graph:
 
         if len(selectable_nodes) > 0:
             best_node = selectable_nodes[0]
-            best_node_value = best_node.get_value()  # + self.get_edge_info(best_node.parent, best_node).reward
+            best_node_value = best_node.get_value() + self.get_edge_info(best_node.parent, best_node).reward
             if self.use_novelty_for_best_step:
                 best_node_value += best_node.novelty_value
         else:
@@ -155,7 +155,7 @@ class Graph:
             best_node_value = None
 
         for n in selectable_nodes:
-            selected_node_value = n.get_value()  # + self.get_edge_info(n.parent, n).reward
+            selected_node_value = n.get_value() + self.get_edge_info(n.parent, n).reward
             if self.use_novelty_for_best_step:
                 selected_node_value += n.novelty_value
             if best_node_value < selected_node_value:
