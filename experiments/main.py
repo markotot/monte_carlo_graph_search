@@ -69,10 +69,8 @@ def run_app(config: DictConfig) -> None:
     logger.upload_image("images/combined_images", combined_images)
 
     if config.search.save_graph:
-        name = (
-            f"graph/{config.env.type}/{config.env.seed}_{config.search.seed}"
-            f"_{config.search.max_moves * config.search.budget_per_move}.nx"
-        )
+        name = f"graph/{config.env.type}/{config.env.seed}_{config.search.seed}"
+        # budget = config.search.max_moves * config.search.budget_per_move
         logger.upload_pickle(name, agent.graph.graph)
 
     metrics = agent.get_final_metrics(terminated or truncated, total_reward)
