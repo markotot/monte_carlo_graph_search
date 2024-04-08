@@ -251,10 +251,15 @@ class MCGSAgent:
 
     def backpropagation(self, trajectory):
 
-        # Trajectory is a list of tuples (parent_obs, current_obs, action, reward, terminated, truncated)
+        # TODO: think about how to do the discount factor in backpropagation
+        #  problem is that we can't calculate the future expected value of a node,
+        #  we only have the reward we got doing the rollout
+        #  idea - when doing the maintenance,
+        #  update the values of the node to be equal to all reward gathered through the edges
         non_obsolete_nodes = []
         total_rollout_reward = 0
 
+        # Trajectory is a list of tuples (parent_obs, current_obs, action, reward, terminated, truncated)
         # filters obsolete actions
         for transition in trajectory:
             observation = transition[0]
@@ -264,6 +269,7 @@ class MCGSAgent:
                 non_obsolete_nodes.append(self.graph.get_node_info(transition[0]))
                 total_rollout_reward += reward
 
+        # add the last observation to the queue
         non_obsolete_nodes.append(self.graph.get_node_info(trajectory[-1][1]))
 
         # creates a list of rolled out nodes from last to first
@@ -285,8 +291,10 @@ class MCGSAgent:
             if node.observation not in nodes_updated:
                 nodes_updated.append(node.observation)
                 node.visits += 1
-                node.total_value += total_rollout_reward * np.power(self.config.search.discount_factor, i)
-                i += 1
+                discounter_reward = total_rollout_reward * np.power(self.config.search.discount_factor, i)
+                node.total_value += discounter_reward
+                node.max_value = max(node.max_value, discounter_reward)
+            i += 1
 
     def rollout(self, action_to_node, env, action_list, action_failure_probabilities):
 
@@ -374,17 +382,12 @@ class MCGSAgent:
 
     def add_stored_nodes(self, trajectories):
 
-        # TODO: Somewhere here we mess up the graph structure and create a parent loop - Solved?
         start_time = time.perf_counter()
         novel_nodes_added = 0
         merge_counter = 0
+
         # Trajectory is a list of tuples (parent_obs, current_obs, action, reward, terminated, truncated)
         for trajectory in trajectories:
-
-            # TODO: How is the parent of the first node unreachable?? - Solved?
-            first_node = self.graph.get_node_info(trajectory[0][0])
-            if first_node.unreachable and first_node != self.root_node:
-                raise AssertionError("Stored Rollout First node is unreachable", first_node.chosen)
 
             for idx, transition in enumerate(trajectory):
 
@@ -409,22 +412,14 @@ class MCGSAgent:
                     parent_node.unreachable = False
 
                 if node_is_new or edge_is_new:
-                    if novelty_criteria:
-                        # TODO: how can an edge between parent and child exist, but the parent is unreachable?
-                        # That means that every time a node visited,
-                        # we need to check if it is unreachable - if it is, make it reachable
-                        if parent_node.unreachable and parent_node != self.root_node:
-                            raise AssertionError(
-                                "Add Stored Rollout Parent node is unreachable",
-                                parent_node.chosen,
-                                parent_node.observation,
-                            )
 
+                    if novelty_criteria:
                         node, _ = self.add_new_observation(
                             observation, parent_node, action, reward, terminated, truncated
                         )
                         if node is not None and node.novelty_value >= 1:
                             novel_nodes_added += 1
+
                 else:
                     merge_counter += 1
 
@@ -553,7 +548,12 @@ class MCGSAgent:
         if best_node is None:  # if there is no reachable node, use root (6 - no action)
             return self.root_node, 6
 
-        print("Best node", best_node.get_value(), best_node.total_value, best_node.visits)
+        print(
+            f"Best node: Value({best_node.get_value():.2f}),"
+            f" Max({best_node.max_value:.2f}),"
+            f" Total({best_node.total_value:.2f}),"
+            f" Visits({best_node.visits:.2f})"
+        )
         self.best_nodes_list.append(best_node)
         while best_node.parent != self.root_node:  # get to the first child of root
             best_node = best_node.parent

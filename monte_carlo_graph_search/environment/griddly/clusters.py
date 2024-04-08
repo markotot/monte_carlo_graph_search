@@ -66,9 +66,6 @@ class ClustersEnv:
             self.terminated = False
             self.truncated = False
 
-        if self.reward <= 0:
-            self.reward = 0
-
         observation = self.observation()
         ClustersEnv.forward_model_calls += 1
         return observation, self.reward, self.terminated, self.truncated, self.info

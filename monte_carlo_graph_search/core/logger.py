@@ -33,6 +33,10 @@ class NeptuneLogger:
     def upload_config(self, output_path, data):
         self.run[output_path] = data
 
+    def upload_pickle(self, output_path, file):
+        file = File.as_pickle(file)
+        self.run[output_path].upload(file)
+
     def close(self):
         self.run.stop()
 

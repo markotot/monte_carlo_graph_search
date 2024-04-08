@@ -1,3 +1,5 @@
+import pickle
+
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -50,10 +52,11 @@ class Graph:
         return node in self.frontier
 
     def save_graph(self, path):
-        nx.readwrite.write_gpickle(self.graph, path + ".gpickle")
+        with open(f"{path}.nx", "wb") as f:
+            pickle.dump(self.graph, f, pickle.HIGHEST_PROTOCOL)
 
     def load_graph(self, path):
-        self.graph = nx.readwrite.read_gpickle(path)
+        self.graph = pickle.load(path)
 
     def select_frontier_node(self, noisy, novelty_factor):
 
@@ -150,11 +153,14 @@ class Graph:
 
         best_node = selectable_nodes[0]
         best_node_value = best_node.get_value()  # + self.get_edge_info(best_node.parent, best_node).reward
+        # best_node_value = best_node.max_value
         if self.use_novelty_for_best_step:
             best_node_value += best_node.novelty_value
 
         for n in selectable_nodes:
             selected_node_value = n.get_value()  # + self.get_edge_info(n.parent, n).reward
+            # selected_node_value = n.max_value
+
             if self.use_novelty_for_best_step:
                 selected_node_value += n.novelty_value
             if best_node_value < selected_node_value:
