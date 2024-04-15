@@ -60,8 +60,12 @@ class ClustersEnv:
         self.current_step += 1
 
         if done:
-            self.terminated = self.reward == -1
-            self.truncated = self.reward != -1
+            if len(self.info) > 0:
+                self.terminated = True
+                self.truncated = False
+            else:
+                self.terminated = False
+                self.truncated = True
         else:
             self.terminated = False
             self.truncated = False

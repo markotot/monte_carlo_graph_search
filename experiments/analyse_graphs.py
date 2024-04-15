@@ -118,7 +118,7 @@ def analyse_graph_metrics(graph):
 
 if __name__ == "__main__":
 
-    nums = range(5946, 5947)
+    nums = [5950]
 
     run_ids = []
     for num in nums:

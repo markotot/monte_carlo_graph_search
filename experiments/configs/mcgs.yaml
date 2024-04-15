@@ -7,12 +7,12 @@ env:
   action_failure_probability: 0.0
 
 search:
-  seed: 1
+  seed: 2
   max_moves: 100
   num_rollouts: 1
-  rollout_depth: 25
+  rollout_depth: 10
   budget_per_move: 1000
-  discount_factor: 1
+  discount_factor: 0.95
 #  best_node_criteria: "closest" # Can be ["closest", "best_value"]
   best_node_criteria: "best_value" # Can be ["closest", "best_value"]
   save_graph: True
