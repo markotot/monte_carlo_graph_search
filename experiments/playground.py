@@ -3,7 +3,7 @@ import time
 import hydra
 from omegaconf import DictConfig
 
-from monte_carlo_graph_search.environment.griddly.clusters import ClustersEnv
+from monte_carlo_graph_search.environment.griddly.clusters_env import ClustersEnv
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="mcgs")

@@ -3,7 +3,7 @@ from omegaconf import DictConfig
 
 from monte_carlo_graph_search.agents.mcgs_agent import MCGSAgent
 from monte_carlo_graph_search.core.logger import NeptuneLogger
-from monte_carlo_graph_search.environment.griddly.clusters import ClustersEnv
+from monte_carlo_graph_search.environment.griddly.clusters_env import ClustersEnv
 from monte_carlo_graph_search.environment.griddly.clusters_novelty import (
     ClustersNovelty,
 )

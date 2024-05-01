@@ -14,11 +14,10 @@ class ClustersEnv:
     forward_model_calls = 0
     initialized = False
 
-    def __init__(self, env_config):
+    def __init__(self, config):
 
-        self.config = env_config
+        self.config = config
         if ClustersEnv.initialized is False:
-            wrapper = GymWrapperFactory()
 
             path = getcwd().split("/")[-1] == "experiments"
             yaml_path = (
@@ -26,7 +25,9 @@ class ClustersEnv:
                 if path
                 else "monte_carlo_graph_search/environment/griddly/clusters.yaml"
             )
+            wrapper = GymWrapperFactory()
             wrapper.build_gym_from_yaml("ClustersEnv", yaml_path)
+
             ClustersEnv.initialized = True
 
         self.env = gym.make(
@@ -34,7 +35,7 @@ class ClustersEnv:
             player_observer_type=gd.ObserverType.VECTOR,
             global_observer_type=gd.ObserverType.SPRITE_2D,
             level=0,
-            max_steps=50,
+            max_steps=200,
         )
 
         self.env.unwrapped.level = 0  # TODO: Fix directly in Griddly
@@ -48,24 +49,29 @@ class ClustersEnv:
         self.truncated = None
         self.info = None
 
+        self.current_step = 0
+
         self.reset()
 
     def step(self, action):
 
         self.action = action  # Save the original action
         self.state, self.reward, done, self.info = self.env.step(action)  # Do the step
+        self.current_step += 1
 
-        observation = self.observation()
-        ClustersEnv.forward_model_calls += 1
-
-        # Hack to find terminated vs truncated
         if done:
-            self.terminated = self.reward == -1
-            self.truncated = self.reward != -1
+            if len(self.info) > 0:
+                self.terminated = True
+                self.truncated = False
+            else:
+                self.terminated = False
+                self.truncated = True
         else:
             self.terminated = False
             self.truncated = False
 
+        observation = self.observation()
+        ClustersEnv.forward_model_calls += 1
         return observation, self.reward, self.terminated, self.truncated, self.info
 
     def stochastic_step(self, action, action_failure_prob=None):
@@ -82,9 +88,9 @@ class ClustersEnv:
         self.current_step = 0
         self.action = None
         self.state = None
-        self.reward = None
         self.terminated = None
         self.truncated = None
+        self.reward = None
         self.info = None
 
         self.state = self.env.reset()
@@ -120,8 +126,9 @@ class ClustersEnv:
         x.action = copy.deepcopy(self.action)
         x.state = copy.deepcopy(self.state)
         x.reward = copy.deepcopy(self.reward)
-        x.info = copy.deepcopy(self.info)
         x.terminated = copy.deepcopy(self.terminated)
         x.truncated = copy.deepcopy(self.truncated)
+        x.info = copy.deepcopy(self.info)
+        x.current_step = copy.deepcopy(self.current_step)
 
         return x
