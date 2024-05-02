@@ -7,28 +7,6 @@ from omegaconf import DictConfig
 from monte_carlo_graph_search.core.logger import NeptuneLogger
 from monte_carlo_graph_search.utils.data_analysis import load_run
 
-#
-# def load_run(project_id, run_id):
-#
-#     run = neptune.init_run(project=project_id, with_id=run_id, mode="read-only")
-#     env_type = run["config/env/type"].fetch()
-#     env_seed = run["config/env/seed"].fetch()
-#     agent_seed = run["config/search/seed"].fetch()
-#
-#     config = run["config"].fetch()
-#
-#     run[f"graph/{env_type}/{env_seed}_{agent_seed}"].download()  # download to current working directory
-#
-#     # Load the graph
-#     file_name = f"{env_seed}_{agent_seed}.pkl"
-#     with open(file_name, "rb") as f:
-#         graph = pickle.load(f)
-#     os.remove(file_name)
-#
-#     run.stop()
-#
-#     return env_type, env_seed, agent_seed, graph, config
-
 
 def get_cycle_length(graph, node_info):
 
@@ -228,7 +206,7 @@ def analyse_graph_metrics(graph, num_actions):
     return aggregate_graph_metrics_pd, aggregated_action_metrics_pd, solved_paths_metrics_pd
 
 
-def run_analysis(run_ids, num_actions, config):
+def run_graph_analysis(run_ids, num_actions):
 
     graphs = []
     for run_id in run_ids:
@@ -258,8 +236,8 @@ def run_app(config: DictConfig) -> None:
     run_ids = ["MCGS-5978", "MCGS-5993", "MCGS-5992"]
     num_actions = 7
 
-    aggregated_graph_metrics, aggregated_action_metrics, aggregated_solved_paths = run_analysis(
-        run_ids=run_ids, num_actions=num_actions, config=config
+    aggregated_graph_metrics, aggregated_action_metrics, aggregated_solved_paths = run_graph_analysis(
+        run_ids=run_ids, num_actions=num_actions
     )
 
     logger = NeptuneLogger(config=config, name="GraphAnalysis")

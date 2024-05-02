@@ -1,7 +1,7 @@
 import hydra
 from omegaconf import DictConfig
 
-from experiments.analyse_graphs import run_analysis
+from experiments.analyse_graphs import run_graph_analysis
 from monte_carlo_graph_search.core.logger import NeptuneLogger
 from monte_carlo_graph_search.utils.data_analysis import (
     aggregate_metrics,
@@ -29,8 +29,8 @@ def run_app(config: DictConfig) -> None:
 
     # Graph analysis
     num_actions = 7
-    aggregated_graph_metrics, aggregated_action_metrics, aggregated_solved_paths = run_analysis(
-        run_ids=run_ids, num_actions=num_actions, config=config
+    aggregated_graph_metrics, aggregated_action_metrics, aggregated_solved_paths = run_graph_analysis(
+        run_ids=run_ids, num_actions=num_actions
     )
     logger.upload_data_frame(output_path="analysis/graph_metrics", data_frame=aggregated_graph_metrics)
     logger.upload_data_frame(output_path="analysis/action_metrics", data_frame=aggregated_action_metrics)
