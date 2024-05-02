@@ -1,3 +1,6 @@
+import os
+import pickle
+
 import neptune
 import pandas as pd
 
@@ -58,15 +61,23 @@ def load_run(project_id, run_id, analysed_metrics):
     run = neptune.init_run(project=project_id, with_id=run_id, mode="read-only")
 
     metrics = {}
+
+    env_type = run["config/env/type"].fetch()
     env_seed = run["config/env/seed"].fetch()
     agent_seed = run["config/search/seed"].fetch()
     config = run["config"].fetch()
     for metric in analysed_metrics:
         metrics[metric] = run[f"metrics/{metric}"].fetch_values(include_timestamp=False)
 
+    run[f"graph/{env_type}/{env_seed}_{agent_seed}"].download()
+    file_name = f"{env_seed}_{agent_seed}.pkl"
+    with open(file_name, "rb") as f:
+        graph = pickle.load(f)
+    os.remove(file_name)
+
     run.stop()
 
-    return env_seed, agent_seed, metrics, config
+    return env_seed, agent_seed, metrics, graph, config
 
 
 def aggregate_metrics(run_ids, analysed_metrics):
@@ -75,7 +86,7 @@ def aggregate_metrics(run_ids, analysed_metrics):
     all_metrics = {}
     # Load all runs
     for run_id in run_ids:
-        env_seed, agent_seed, metrics, config = load_run("markotot/MCGS", f"{run_id}", analysed_metrics)
+        env_seed, agent_seed, metrics, _, config = load_run("markotot/MCGS", f"{run_id}", analysed_metrics)
         all_metrics[f"MCGS-{env_seed}-{agent_seed}"] = metrics
 
     del config["env"]["seed"]

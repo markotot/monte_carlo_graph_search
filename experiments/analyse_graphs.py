@@ -1,36 +1,33 @@
-import os
-import pickle
-
 import hydra
-import neptune
 import networkx as nx
 import numpy as np
 import pandas as pd
 from omegaconf import DictConfig
 
 from monte_carlo_graph_search.core.logger import NeptuneLogger
+from monte_carlo_graph_search.utils.data_analysis import load_run
 
-
-def load_run(project_id, run_id):
-
-    run = neptune.init_run(project=project_id, with_id=run_id, mode="read-only")
-    env_type = run["config/env/type"].fetch()
-    env_seed = run["config/env/seed"].fetch()
-    agent_seed = run["config/search/seed"].fetch()
-
-    config = run["config"].fetch()
-
-    run[f"graph/{env_type}/{env_seed}_{agent_seed}"].download()  # download to current working directory
-
-    # Load the graph
-    file_name = f"{env_seed}_{agent_seed}.pkl"
-    with open(file_name, "rb") as f:
-        graph = pickle.load(f)
-    os.remove(file_name)
-
-    run.stop()
-
-    return env_type, env_seed, agent_seed, graph, config
+#
+# def load_run(project_id, run_id):
+#
+#     run = neptune.init_run(project=project_id, with_id=run_id, mode="read-only")
+#     env_type = run["config/env/type"].fetch()
+#     env_seed = run["config/env/seed"].fetch()
+#     agent_seed = run["config/search/seed"].fetch()
+#
+#     config = run["config"].fetch()
+#
+#     run[f"graph/{env_type}/{env_seed}_{agent_seed}"].download()  # download to current working directory
+#
+#     # Load the graph
+#     file_name = f"{env_seed}_{agent_seed}.pkl"
+#     with open(file_name, "rb") as f:
+#         graph = pickle.load(f)
+#     os.remove(file_name)
+#
+#     run.stop()
+#
+#     return env_type, env_seed, agent_seed, graph, config
 
 
 def get_cycle_length(graph, node_info):
@@ -55,7 +52,7 @@ def analyse_graph_metrics(graph, num_actions):
         "terminated_nodes": [],
         "expanded_nodes": [],
         "children_per_node": [],
-        "expanded_children_per_node": [],
+        "expanded_node_children": [],
         "visits_per_node": [],
         "clustering_coefficient": [],
         "reversible_nodes": [],
@@ -93,9 +90,17 @@ def analyse_graph_metrics(graph, num_actions):
         graph_metrics["children_per_node"].append(num_children)
 
         action_metrics[node_info.action]["times_selected"] += 1
-        if node_info.parent is not None and node_info.parent != -1:
+
+        has_parent = node_info.parent is not None and node_info.parent != -1
+        if has_parent:
             edge_info = graph.get_edge_data(node_info.parent.observation, node_info.observation)["info"]
             action_metrics[node_info.action]["rewards"].append(edge_info.reward)
+        else:
+            in_edges = graph.in_edges(node_info.observation, data=True)
+            for edge in in_edges:
+                edge_info = edge[2]["info"]
+                if edge_info.action == node_info.action:
+                    action_metrics[node_info.action]["rewards"].append(edge_info.reward)
         action_metrics[node_info.action]["children"].append(num_children)
 
         graph_metrics["terminated_nodes"].append(node_info.terminated)
@@ -103,7 +108,7 @@ def analyse_graph_metrics(graph, num_actions):
 
         # Count expanded nodes
         if node_info.is_leaf is False:
-            graph_metrics["expanded_children_per_node"].append(num_children)
+            graph_metrics["expanded_node_children"].append(num_children)
             action_metrics[node_info.action]["expanded_node_children"].append(num_children)
 
         # Count reversibility and cycle length
@@ -132,20 +137,25 @@ def analyse_graph_metrics(graph, num_actions):
     reversibility_percentage = (
         np.sum(np.array(graph_metrics["reversible_nodes"], dtype=bool)) / graph_metrics["num_total_nodes"]
     )
+
     aggregate_graph_metrics = {
         "total_nodes": graph_metrics["num_total_nodes"],
         "total_edges": graph_metrics["num_total_edges"],
         "num_terminated_nodes": np.sum(np.array(graph_metrics["terminated_nodes"], dtype=bool)),
+        "mean_children": np.nanmean(graph_metrics["children_per_node"]),
+        "std_children": np.nanstd(graph_metrics["children_per_node"]),
+        "max_children": np.nanmax(np.asarray(graph_metrics["children_per_node"], dtype=np.float16), initial=np.NAN),
+        "min_children": np.nanmin(np.asarray(graph_metrics["children_per_node"], dtype=np.float16), initial=np.NAN),
         "num_expanded_nodes": np.sum(np.array(graph_metrics["expanded_nodes"], dtype=bool)),
-        "mean_children": np.mean(graph_metrics["children_per_node"]),
-        "std_children": np.std(graph_metrics["children_per_node"]),
-        "max_children": np.max(graph_metrics["children_per_node"]),
-        "min_children": np.min(graph_metrics["children_per_node"]),
-        "mean_visits_per_node": np.mean(graph_metrics["visits_per_node"]),
-        "std_visits_per_node": np.std(graph_metrics["visits_per_node"]),
-        "max_visits_per_node": np.max(graph_metrics["visits_per_node"]),
-        "min_visits_per_node": np.min(graph_metrics["visits_per_node"]),
-        "clustering_coefficient": np.mean(graph_metrics["clustering_coefficient"]),
+        "mean_expanded_node_children": np.nanmean(graph_metrics["expanded_node_children"]),
+        "std_expanded_node_children": np.nanstd(graph_metrics["expanded_node_children"]),
+        "max_expanded_node_children": np.nanmax(graph_metrics["expanded_node_children"]),
+        "min_expanded_node_children": np.nanmin(graph_metrics["expanded_node_children"]),
+        "mean_visits_per_node": np.nanmean(graph_metrics["visits_per_node"]),
+        "std_visits_per_node": np.nanstd(graph_metrics["visits_per_node"]),
+        "max_visits_per_node": np.nanmax(graph_metrics["visits_per_node"]),
+        "min_visits_per_node": np.nanmin(graph_metrics["visits_per_node"]),
+        "clustering_coefficient": np.nanmean(graph_metrics["clustering_coefficient"]),
         "reversible_nodes": np.sum(np.array(graph_metrics["reversible_nodes"], dtype=bool)),
         "reversibility_percentage": reversibility_percentage,
         "cycle_length": np.nanmean(graph_metrics["cycle_length"]),
@@ -161,19 +171,33 @@ def analyse_graph_metrics(graph, num_actions):
             reversibility_percentage = (
                 np.sum(np.array(metrics["reversible_nodes"], dtype=bool)) / metrics["times_selected"]
             )
+
+            if len(graph_metrics["expanded_node_children"]) == 0:
+                mean_exp_node_children = np.NAN
+                std_exp_node_children = np.NAN
+                max_exp_node_children = np.NAN
+                min_exp_node_children = np.NAN
+            else:
+                mean_exp_node_children = np.nanmean(
+                    np.asarray(graph_metrics["expanded_node_children"], dtype=np.float16)
+                )
+                std_exp_node_children = np.nanstd(np.asarray(graph_metrics["expanded_node_children"], dtype=np.float16))
+                max_exp_node_children = np.nanmax(np.asarray(graph_metrics["expanded_node_children"], dtype=np.float16))
+                min_exp_node_children = np.nanmin(np.asarray(graph_metrics["expanded_node_children"], dtype=np.float16))
+
             aggregated_action_metrics[action_id] = {
-                "mean_reward": np.mean(metrics["rewards"]),
-                "std_reward": np.std(metrics["rewards"]),
-                "max_reward": np.max(metrics["rewards"]),
-                "min_reward": np.min(metrics["rewards"]),
-                "mean_children": np.mean(metrics["children"]),
-                "std_children": np.std(metrics["children"]),
-                "max_children": np.max(metrics["children"]),
-                "min_children": np.min(metrics["children"]),
-                "mean_expanded_node_children": np.mean(metrics["expanded_node_children"]),
-                "std_expanded_node_children": np.std(metrics["expanded_node_children"]),
-                "max_expanded_node_children": np.max(metrics["expanded_node_children"]),
-                "min_expanded_node_children": np.min(metrics["expanded_node_children"]),
+                "mean_reward": np.nanmean(metrics["rewards"]),
+                "std_reward": np.nanstd(metrics["rewards"]),
+                "max_reward": np.nanmax(metrics["rewards"]),
+                "min_reward": np.nanmin(metrics["rewards"]),
+                "mean_children": np.nanmean(metrics["children"]),
+                "std_children": np.nanstd(metrics["children"]),
+                "max_children": np.nanmax(metrics["children"]),
+                "min_children": np.nanmin(metrics["children"]),
+                "mean_expanded_node_children": mean_exp_node_children,
+                "std_expanded_node_children": std_exp_node_children,
+                "max_expanded_node_children": max_exp_node_children,
+                "min_expanded_node_children": min_exp_node_children,
                 "times_selected": metrics["times_selected"],
                 "percentage_of_times_selected_as_best_action": 0,
                 "reversibility_percentage": reversibility_percentage,
@@ -197,38 +221,53 @@ def analyse_graph_metrics(graph, num_actions):
                 "percentage_of_times_selected_as_best_action": None,
             }
 
-    aggregated_action_metrics_pd = pd.DataFrame.from_dict(aggregated_action_metrics, orient="index")
     aggregate_graph_metrics_pd = pd.DataFrame.from_dict(aggregate_graph_metrics, orient="index")
-    solved_paths_metrics_pd = pd.DataFrame(solved_paths).T
+    aggregated_action_metrics_pd = pd.DataFrame.from_dict(aggregated_action_metrics, orient="index")
+    solved_paths_metrics_pd = pd.DataFrame(solved_paths)
 
     return aggregate_graph_metrics_pd, aggregated_action_metrics_pd, solved_paths_metrics_pd
 
 
-@hydra.main(version_base=None, config_path="configs", config_name="aggregate_data")
-def run_analysis(config: DictConfig) -> None:
-
-    num_actions = 7
-    nums = [5978]
-
-    run_ids = []
-    for num in nums:
-        run_ids.append(f"MCGS-{num}")
+def run_analysis(run_ids, num_actions, config):
 
     graphs = []
     for run_id in run_ids:
-        _, _, _, graph, _ = load_run("markotot/MCGS", f"{run_id}")
+        _, _, _, graph, _ = load_run("markotot/MCGS", f"{run_id}", analysed_metrics=[])
         graphs.append(graph)
 
+    graph_dataframes = []
+    action_metrics_dataframes = []
+    solved_path_dataframes = []
+
     for graph in graphs:
-        graph_metrics, action_metrics, solved_path_metrics = analyse_graph_metrics(graph, num_actions=num_actions)
+        graph_metrics, action_metrics, solved_paths = analyse_graph_metrics(graph, num_actions=num_actions)
+        graph_dataframes.append(graph_metrics)
+        action_metrics_dataframes.append(action_metrics)
+        solved_path_dataframes.append(solved_paths)
+
+    aggregated_graph_metrics = pd.concat(graph_dataframes).groupby(level=0).mean()
+    aggregated_action_metrics = pd.concat(action_metrics_dataframes).groupby(level=0).mean()
+    aggregated_solved_paths = pd.concat(solved_path_dataframes)
+
+    return aggregated_graph_metrics, aggregated_action_metrics, aggregated_solved_paths
+
+
+@hydra.main(version_base=None, config_path="configs", config_name="aggregate_data")
+def run_app(config: DictConfig) -> None:
+
+    run_ids = ["MCGS-5978", "MCGS-5993", "MCGS-5992"]
+    num_actions = 7
+
+    aggregated_graph_metrics, aggregated_action_metrics, aggregated_solved_paths = run_analysis(
+        run_ids=run_ids, num_actions=num_actions, config=config
+    )
 
     logger = NeptuneLogger(config=config, name="GraphAnalysis")
-
-    logger.upload_data_frame(output_path="metrics/graph_metrics", data_frame=graph_metrics)
-    logger.upload_data_frame(output_path="metrics/action_metrics", data_frame=action_metrics)
-    logger.upload_data_frame(output_path="metrics/solved_path_metrics", data_frame=solved_path_metrics)
+    logger.upload_data_frame(output_path="metrics/graph_metrics", data_frame=aggregated_graph_metrics)
+    logger.upload_data_frame(output_path="metrics/action_metrics", data_frame=aggregated_action_metrics)
+    logger.upload_data_frame(output_path="metrics/solved_path_metrics", data_frame=aggregated_solved_paths)
     logger.close()
 
 
 if __name__ == "__main__":
-    run_analysis()
+    run_app()
