@@ -16,7 +16,7 @@ search:
   best_node_criteria: "closest" # Can be ["closest", "best_value"]
 #  best_node_criteria: "best_value" # Can be ["closest", "best_value"]
   save_graph: True
-  analyse_metrics: True
+  analyse_metrics: False
 
 selection:
   use_noisy_frontier_selection: True

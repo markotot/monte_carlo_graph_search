@@ -2,7 +2,6 @@ import hydra
 import pandas as pd
 from omegaconf import DictConfig
 
-from experiments.analyse_graphs import analyse_graph_metrics
 from monte_carlo_graph_search.agents.mcgs_agent import MCGSAgent
 from monte_carlo_graph_search.core.logger import NeptuneLogger
 from monte_carlo_graph_search.environment.griddly.clusters_env import ClustersEnv
@@ -16,6 +15,7 @@ from monte_carlo_graph_search.environment.minigrid.minigrid_novelty import (
     MinigridNovelty,
 )
 from monte_carlo_graph_search.utils import utils
+from monte_carlo_graph_search.utils.data_analysis import analyse_graph_metrics
 from monte_carlo_graph_search.utils.plotting import plot_images
 
 # TODO: fix plotting so that it can plot images in neptune through apocrita (probably needs scaling)
