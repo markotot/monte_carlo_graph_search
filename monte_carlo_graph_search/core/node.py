@@ -1,8 +1,20 @@
 class Node:
     def __init__(
-        self, observation, parent, is_leaf, action, value, terminated, truncated, visits, novelty_value, config
+        self,
+        observation,
+        parent,
+        is_leaf,
+        action,
+        value,
+        terminated,
+        truncated,
+        start_node,
+        visits,
+        novelty_value,
+        config,
     ):
 
+        self.start_node = start_node
         self.observation = observation
         self.parent = parent
         self.is_leaf = is_leaf

@@ -39,7 +39,7 @@ def get_cycle_length(graph, node_info):
         cycle = nx.find_cycle(graph, node_info.observation, orientation="original")
         cycle_length = len(cycle)
     except nx.exception.NetworkXNoCycle:
-        cycle_length = 0
+        cycle_length = np.NAN
 
     return cycle_length
 
@@ -59,7 +59,6 @@ def analyse_graph_metrics(graph, num_actions):
         "visits_per_node": [],
         "clustering_coefficient": [],
         "reversible_nodes": [],
-        "irreversible_nodes": [],
         "reversibility_percentage": None,
         "cycle_length": [],
     }
@@ -74,9 +73,17 @@ def analyse_graph_metrics(graph, num_actions):
             # TODO: Calcualte p_t_selected_best how many times this action is prefered to other action
             #  i.e. there are multiple parents but this action was the best one,
             "percentage_of_times_selected_as_best_action": 0,
+            "reversible_nodes": [],
+            "cycle_length": [],
         }
 
     nodes_info = list(nx.get_node_attributes(graph, "info").values())
+
+    solved_paths = []
+    start_node = None
+    for node_info in nodes_info:
+        if node_info.start_node is True:
+            start_node = node_info
 
     for node_info in nodes_info:
 
@@ -103,9 +110,21 @@ def analyse_graph_metrics(graph, num_actions):
         cycle_length = get_cycle_length(graph, node_info)
         graph_metrics["cycle_length"].append(cycle_length)
         graph_metrics["reversible_nodes"].append(cycle_length > 0)
-        graph_metrics["irreversible_nodes"].append(cycle_length == 0)
         graph_metrics["visits_per_node"].append(node_info.visits)
         graph_metrics["clustering_coefficient"].append(nx.clustering(graph, node_info.observation))
+
+        action_metrics[node_info.action]["cycle_length"].append(cycle_length)
+        action_metrics[node_info.action]["reversible_nodes"].append(cycle_length > 0)
+
+        if node_info.terminated:
+
+            observations = nx.dijkstra_path(graph, start_node.observation, node_info.observation)
+            actions = []
+            for i in range(len(observations) - 1):
+                edge_info = graph.get_edge_data(observations[i], observations[i + 1])["info"]
+                actions.append(edge_info.action)
+
+            solved_paths.append(actions)
 
     # Calculate aggregate graph metrics
     # Communities
@@ -128,18 +147,20 @@ def analyse_graph_metrics(graph, num_actions):
         "min_visits_per_node": np.min(graph_metrics["visits_per_node"]),
         "clustering_coefficient": np.mean(graph_metrics["clustering_coefficient"]),
         "reversible_nodes": np.sum(np.array(graph_metrics["reversible_nodes"], dtype=bool)),
-        "irreversible_nodes": np.sum(np.array(graph_metrics["irreversible_nodes"], dtype=bool)),
         "reversibility_percentage": reversibility_percentage,
-        "cycle_length": np.mean(graph_metrics["cycle_length"]),
-        "std_cycle_length": np.std(graph_metrics["cycle_length"]),
-        "max_cycle_length": np.max(graph_metrics["cycle_length"]),
-        "min_cycle_length": np.min(graph_metrics["cycle_length"]),
+        "cycle_length": np.nanmean(graph_metrics["cycle_length"]),
+        "std_cycle_length": np.nanstd(graph_metrics["cycle_length"]),
+        "max_cycle_length": np.nanmax(graph_metrics["cycle_length"]),
+        "min_cycle_length": np.nanmin(graph_metrics["cycle_length"]),
     }
 
     # Calculate aggregated action metrics
     aggregated_action_metrics = {}
     for action_id, metrics in action_metrics.items():
         if metrics["times_selected"] != 0:
+            reversibility_percentage = (
+                np.sum(np.array(metrics["reversible_nodes"], dtype=bool)) / metrics["times_selected"]
+            )
             aggregated_action_metrics[action_id] = {
                 "mean_reward": np.mean(metrics["rewards"]),
                 "std_reward": np.std(metrics["rewards"]),
@@ -155,6 +176,8 @@ def analyse_graph_metrics(graph, num_actions):
                 "min_expanded_node_children": np.min(metrics["expanded_node_children"]),
                 "times_selected": metrics["times_selected"],
                 "percentage_of_times_selected_as_best_action": 0,
+                "reversibility_percentage": reversibility_percentage,
+                "cycle_length": np.nanmean(metrics["cycle_length"]),
             }
         else:
             aggregated_action_metrics[action_id] = {
@@ -176,15 +199,16 @@ def analyse_graph_metrics(graph, num_actions):
 
     aggregated_action_metrics_pd = pd.DataFrame.from_dict(aggregated_action_metrics, orient="index")
     aggregate_graph_metrics_pd = pd.DataFrame.from_dict(aggregate_graph_metrics, orient="index")
+    solved_paths_metrics_pd = pd.DataFrame(solved_paths).T
 
-    return aggregate_graph_metrics_pd, aggregated_action_metrics_pd
+    return aggregate_graph_metrics_pd, aggregated_action_metrics_pd, solved_paths_metrics_pd
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="aggregate_data")
 def run_analysis(config: DictConfig) -> None:
 
-    num_actions = 6
-    nums = [5950]
+    num_actions = 7
+    nums = [5978]
 
     run_ids = []
     for num in nums:
@@ -192,16 +216,17 @@ def run_analysis(config: DictConfig) -> None:
 
     graphs = []
     for run_id in run_ids:
-        env_type, env_seed, agent_seed, graph, run_config = load_run("markotot/MCGS", f"{run_id}")
+        _, _, _, graph, _ = load_run("markotot/MCGS", f"{run_id}")
         graphs.append(graph)
 
     for graph in graphs:
-        graph_metrics, action_metrics = analyse_graph_metrics(graph, num_actions=num_actions)
+        graph_metrics, action_metrics, solved_path_metrics = analyse_graph_metrics(graph, num_actions=num_actions)
 
     logger = NeptuneLogger(config=config, name="GraphAnalysis")
 
     logger.upload_data_frame(output_path="metrics/graph_metrics", data_frame=graph_metrics)
     logger.upload_data_frame(output_path="metrics/action_metrics", data_frame=action_metrics)
+    logger.upload_data_frame(output_path="metrics/solved_path_metrics", data_frame=solved_path_metrics)
     logger.close()
 
 

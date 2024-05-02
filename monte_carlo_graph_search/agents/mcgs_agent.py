@@ -34,6 +34,7 @@ class MCGSAgent:
             truncated=False,
             action=None,
             value=0,
+            start_node=True,
             visits=0,
             novelty_value=0,
             config=config,
@@ -48,6 +49,13 @@ class MCGSAgent:
             self.move_counter,
             self.env.forward_model_calls,
         )
+
+        self.all_actions = {}
+        for action in range(self.env.action_space.n):
+            self.all_actions[action] = {
+                "total": 0,
+                "obsolete": 0,
+            }
 
     def plan(self) -> int:
 
@@ -189,11 +197,18 @@ class MCGSAgent:
         for action in range(self.env.action_space.n):
 
             expansion_env = env.copy()
+
+            previous_obs = expansion_env.get_observation()
             state, reward, terminated, truncated, info = expansion_env.step(action)
             # Do we need it here, since it's already tracked in custom_minigrid_env.py -> step() # Maybe we don't ne
             spent_budget += 1
             current_observation = expansion_env.get_observation()
-            # TODO: parent in unreachable
+
+            # Used for during the search analysis
+            self.all_actions[action]["total"] += 1
+            if previous_obs == current_observation:
+                self.all_actions[action]["obsolete"] += 1
+
             if node.unreachable and node != self.root_node:
                 raise AssertionError("Expansion Parent node is unreachable", node.chosen, node.observation)
 
@@ -331,6 +346,12 @@ class MCGSAgent:
 
                 cumulative_reward += reward
                 path.append((previous_observation, observation, action, reward, terminated, truncated))
+
+                # Used for during the search analysis
+                self.all_actions[action]["total"] += 1
+                if previous_observation == observation:
+                    self.all_actions[action]["obsolete"] += 1
+
                 previous_observation = observation
                 if terminated or truncated:
                     break
@@ -356,6 +377,7 @@ class MCGSAgent:
                     truncated=truncated,
                     action=action,
                     value=0,
+                    start_node=False,
                     visits=0,
                     novelty_value=self.novelty.calculate_novelty(current_observation),
                     config=self.config,

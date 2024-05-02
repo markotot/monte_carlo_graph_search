@@ -1,6 +1,8 @@
 import hydra
+import pandas as pd
 from omegaconf import DictConfig
 
+from experiments.analyse_graphs import analyse_graph_metrics
 from monte_carlo_graph_search.agents.mcgs_agent import MCGSAgent
 from monte_carlo_graph_search.core.logger import NeptuneLogger
 from monte_carlo_graph_search.environment.griddly.clusters_env import ClustersEnv
@@ -41,7 +43,6 @@ def init_env(config):
 def run_app(config: DictConfig) -> None:
 
     logger = NeptuneLogger(config=config, name="MCGS")
-
     env, novelty = init_env(config)
 
     agent = MCGSAgent(env=env, novelty=novelty, logger=logger, config=config)
@@ -75,6 +76,18 @@ def run_app(config: DictConfig) -> None:
 
     metrics = agent.get_final_metrics(terminated or truncated, total_reward)
     logger.write(metrics, agent.move_counter)
+
+    if config.search.analyse_metrics:
+
+        all_actions_df = pd.DataFrame.from_dict(agent.all_actions, orient="index")
+        logger.upload_data_frame(output_path="analysis/all_actions", data_frame=all_actions_df)
+
+        graph_metrics, action_metrics, solved_paths = analyse_graph_metrics(
+            agent.graph.graph, num_actions=env.action_space.n
+        )
+        logger.upload_data_frame(output_path="analysis/solved_paths", data_frame=solved_paths)
+        logger.upload_data_frame(output_path="analysis/graph_metrics", data_frame=graph_metrics)
+        logger.upload_data_frame(output_path="analysis/action_metrics", data_frame=action_metrics)
 
     utils.add_to_experiment_file(f"../experiment_runs/{config.run_name}.txt", logger.get_id())
     logger.close()
