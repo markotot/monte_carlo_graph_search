@@ -66,7 +66,7 @@ class Graph:
         else:
 
             if noisy:
-                amplitude = self.get_best_node(only_reachable=True).uct_value() * self.config.selection.amplitude_factor
+                amplitude = self.get_best_node(only_reachable=True).get_value() * self.config.selection.amplitude_factor
                 noise = self.random.normal(
                     0,
                     max(amplitude, self.config.selection.noisy_min_value),
