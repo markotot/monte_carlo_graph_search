@@ -327,7 +327,8 @@ class Graph:
         for n in all_nodes:
             n.unreachable = True
             n.parent = -1
-        self.root_node.parent = None
+            n.distance_from_root = -1
+        self.root_node.set_parent(None)
 
         # BFS implementation
         visited = []

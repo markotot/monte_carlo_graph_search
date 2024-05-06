@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class Node:
     def __init__(
         self,
@@ -11,6 +14,7 @@ class Node:
         start_node,
         visits,
         novelty_value,
+        distance_from_root,
         config,
     ):
 
@@ -33,9 +37,11 @@ class Node:
         self.chosen = False
         self.unreachable = False
 
+        self.distance_from_root = distance_from_root
+
     def uct_value(self):
-        # c = 0.0
-        ucb = 0  # + c * sqrt(log(self.parent.visits + 1) / self.visits)
+        c = np.sqrt(2)
+        ucb = 0 + c * np.sqrt(np.log(self.parent.visits + 1) / self.visits)
         return self.get_value() + ucb
 
     def get_value(self):
@@ -72,6 +78,10 @@ class Node:
 
     def set_parent(self, parent):
         self.parent = parent
+        if parent is not None:
+            self.distance_from_root = parent.distance_from_root + 1
+        else:
+            self.distance_from_root = 0
 
     def __hash__(self):
         return hash(self.observation)

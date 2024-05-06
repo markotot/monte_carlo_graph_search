@@ -13,10 +13,11 @@ search:
   rollout_depth: 25
   budget_per_move: 1000
   discount_factor: 0.95
+  selection_type: "uct" # Can be ["frontier", "uct"]
   best_node_criteria: "closest" # Can be ["closest", "best_value"]
 #  best_node_criteria: "best_value" # Can be ["closest", "best_value"]
   save_graph: True
-  analyse_metrics: False
+  analyse_metrics: True
 
 selection:
   use_noisy_frontier_selection: True

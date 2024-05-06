@@ -37,6 +37,7 @@ class MCGSAgent:
             start_node=True,
             visits=0,
             novelty_value=0,
+            distance_from_root=0,
             config=config,
         )
         self.root_node.chosen = True
@@ -73,7 +74,9 @@ class MCGSAgent:
         while remaining_budget > 0:
             # Selection
             selection_env = self.env.copy()
-            node, selection_budget, selection_metrics = self.selection(selection_env)
+            node, selection_budget, selection_metrics = self.selection(
+                env=selection_env, selection_type=self.config.search.selection_type
+            )
             utils.update_metrics(aggregated_metrics, selection_metrics)
 
             # Expansion - This could be modified to allow single child expansion
@@ -151,8 +154,14 @@ class MCGSAgent:
     def act(self, action):
         return self.env.stochastic_step(action, self.random.random_sample())
 
-    def selection(self, env):
+    def selection(self, env, selection_type):
 
+        if selection_type == "frontier":
+            return self.frontier_selection(env)
+        elif selection_type == "uct":
+            return self.uct_selection(env)
+
+    def frontier_selection(self, env):
         start_time = time.perf_counter()
         if self.root_node.is_leaf:
             return self.root_node, 0, {}
@@ -176,6 +185,42 @@ class MCGSAgent:
             "selection_spent_budget": spent_budget,
         }
         return selected_node, spent_budget, metrics
+
+    def uct_selection(self, env):
+        start_time = time.perf_counter()
+        spent_budget = 0
+        # UCT algorithm
+        #  1. Select starting node
+        #  2. While not at leaf node
+        #       2.1. Get all children
+        #       2.2. Filter children with higher distance from root
+        #       2.2. Select the child node with the highest UCT value
+        current_node = self.root_node
+        while not current_node.is_leaf:
+            children = self.graph.get_children(current_node)
+            assert len(children) > 0, "No children found in UCT selection"
+            children = [child for child in children if child.distance_from_root > current_node.distance_from_root]
+
+            # If there is no child node which is further from the root, select current node
+            if len(children) == 0:
+                break
+
+            uct_values = [child.uct_value() for child in children]
+            best_child_node = children[np.argmax(uct_values)]
+            action = self.graph.get_edge_info(current_node, best_child_node).action
+            observation, _, _, _, _ = env.step(action)
+            current_node = self.graph.get_node_info(observation)
+            spent_budget += 1
+
+            assert spent_budget < 100, "UCT infinite loop"
+
+        end_time = time.perf_counter()
+        metrics = {
+            # "go_to_node_time": (end_got_to_node - start_go_to_node),
+            "selection_time": (end_time - start_time),
+            "selection_spent_budget": spent_budget,
+        }
+        return current_node, spent_budget, metrics
 
     def expansion(self, node, env):
 
@@ -266,11 +311,6 @@ class MCGSAgent:
 
     def backpropagation(self, trajectory):
 
-        # TODO: think about how to do the discount factor in backpropagation
-        #  problem is that we can't calculate the future expected value of a node,
-        #  we only have the reward we got doing the rollout
-        #  idea - when doing the maintenance,
-        #  update the values of the node to be equal to all reward gathered through the edges
         non_obsolete_nodes = []
         total_rollout_reward = 0
 
@@ -380,6 +420,7 @@ class MCGSAgent:
                     start_node=False,
                     visits=0,
                     novelty_value=self.novelty.calculate_novelty(current_observation),
+                    distance_from_root=parent_node.distance_from_root + 1,
                     config=self.config,
                 )
                 self.graph.add_node(child_node)
