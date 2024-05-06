@@ -1,4 +1,4 @@
-GIT_BRANCH = dev
+GIT_BRANCH = validation
 PROJECT_NAME = monte_carlo_graph_search
 
 #APOCRITA
