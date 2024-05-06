@@ -1,6 +1,6 @@
 env:
 #  type: "minigrid"
-  type: "clusters"
+  type: "minigrid"
   seed: 1
   size: 16
   level_name: "default" # Can be ["default", "test16", "labyrinth16"]
@@ -13,8 +13,8 @@ search:
   rollout_depth: 25
   budget_per_move: 1000
   discount_factor: 1
-#  best_node_criteria: "closest" # Can be ["closest", "best_value"]
-  best_node_criteria: "best_value" # Can be ["closest", "best_value"]
+  best_node_criteria: "closest" # Can be ["closest", "best_value"]
+#  best_node_criteria: "best_value" # Can be ["closest", "best_value"]
   save_graph: True
 
 selection:
