@@ -335,10 +335,10 @@ def aggregate_metrics(run_ids, analysed_metrics):
     for metric in analysed_metrics:
 
         data = aggregate_metrics[metric].iloc[:, 1:]
-        aggregate_metrics[metric]["mean"] = data[data[metric] > -1].mean(numeric_only=True, axis=1)
-        aggregate_metrics[metric]["std"] = data[data[metric] > -1].std(numeric_only=True, axis=1)
-        aggregate_metrics[metric]["max"] = data[data[metric] > -1].max(numeric_only=True, axis=1)
-        aggregate_metrics[metric]["min"] = data[data[metric] > -1].min(numeric_only=True, axis=1)
+        aggregate_metrics[metric]["mean"] = data.mean(numeric_only=True, axis=1)
+        aggregate_metrics[metric]["std"] = data.std(numeric_only=True, axis=1)
+        aggregate_metrics[metric]["max"] = data.max(numeric_only=True, axis=1)
+        aggregate_metrics[metric]["min"] = data.min(numeric_only=True, axis=1)
 
     essential_metrics_names = []
     essential_metrics = []
