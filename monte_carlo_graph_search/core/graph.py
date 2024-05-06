@@ -76,11 +76,11 @@ class Graph:
                 noise = 0
 
             best_node = selectable_nodes[0]
-            best_node_value = best_node.uct_value() + noise[0] + novelty_factor * best_node.novelty_value
+            best_node_value = best_node.get_value() + noise[0] + novelty_factor * best_node.novelty_value
             for i, n in enumerate(selectable_nodes):
-                if n.uct_value() + noise[i] + novelty_factor * n.novelty_value > best_node_value:
+                if n.get_value() + noise[i] + novelty_factor * n.novelty_value > best_node_value:
                     best_node = n
-                    best_node_value = n.uct_value() + noise[i] + novelty_factor * n.novelty_value
+                    best_node_value = n.get_value() + noise[i] + novelty_factor * n.novelty_value
 
             assert self.has_path(self.root_node, best_node)
             return best_node

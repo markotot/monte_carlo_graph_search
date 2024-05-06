@@ -41,7 +41,7 @@ class Node:
 
     def uct_value(self):
         c = np.sqrt(2)
-        ucb = 0 + c * np.sqrt(np.log(self.parent.visits + 1) / self.visits)
+        ucb = c * np.sqrt(np.log(self.parent.visits + 1) / self.visits)
         return self.get_value() + ucb
 
     def get_value(self):
