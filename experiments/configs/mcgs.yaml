@@ -2,7 +2,7 @@ env:
   type: "minigrid"
 #  type: "clusters"
   seed: 10
-  size: 16
+  size: 8
   level_name: "default" # Can be ["default", "test16", "labyrinth16"]
   action_failure_probability: 0.0
 
@@ -11,7 +11,7 @@ search:
   max_moves: 100
   num_rollouts: 1
   rollout_depth: 25
-  budget_per_move: 1000
+  budget_per_move: 500
   discount_factor: 1
   selection_type: "frontier" # Can be ["frontier", "uct"]
   best_node_criteria: "closest" # Can be ["closest", "best_value"]
